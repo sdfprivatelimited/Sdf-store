@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Details - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #ffffff; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        /* Spreadsheet/Table Styling */
+        .sheet-table { width: 100%; border-collapse: collapse; }
+        .sheet-table th { 
+            background-color: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            padding: 8px; 
+            text-align: left; 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            color: #64748b;
+        }
+        .sheet-table td { 
+            border: 1px solid #e2e8f0; 
+            padding: 8px; 
+            font-size: 12px; 
+            color: #334155;
+        }
+        .sheet-table tr:nth-child(even) { background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <a href="purchase_views.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="text-xl font-bold tracking-wider">BILL DETAILS</h1>
+            <button onclick="window.print()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-print"></i></button>
+        </div>
+
+        <div class="p-4 flex-1">
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center mt-10 text-indigo-500">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                <p class="text-sm font-bold">Loading bill details...</p>
+            </div>
+
+            <!-- Content Container (Hidden until data loads) -->
+            <div id="billContent" class="hidden">
+                
+                <!-- Bill Summary Card -->
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-5 relative">
+                    <span id="badgeStatus" class="absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-md border"></span>
+                    
+                    <h2 class="text-lg font-bold text-indigo-900 mb-1" id="supplierName">Supplier Name</h2>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mt-3">
+                        <div>
+                            <p class="font-bold uppercase text-[10px] text-gray-400">Date</p>
+                            <p id="billDate" class="font-semibold text-gray-700"></p>
+                        </div>
+                        <div>
+                            <p class="font-bold uppercase text-[10px] text-gray-400">Bill No</p>
+                            <p id="billNo" class="font-semibold text-gray-700"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Sheet Style Table for Items -->
+                <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">Purchased Items</h3>
+                <div class="overflow-x-auto rounded-lg border border-gray-200 mb-5 shadow-sm">
+                    <table class="sheet-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th class="text-center">Qty / Unit</th>
+                                <th class="text-right">Price/Unit (₹)</th>
+                                <th class="text-right">Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Items injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Final Amount Summary -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                        <span class="text-xs font-bold text-gray-500 uppercase">Grand Total:</span>
+                        <span class="text-lg font-bold text-gray-800">₹ <span id="grandTotal">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                        <span class="text-xs font-bold text-green-600 uppercase">Paid Amount:</span>
+                        <span class="text-sm font-bold text-green-600">₹ <span id="paidAmount">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-red-500 uppercase">Due Amount:</span>
+                        <span class="text-sm font-bold text-red-600">₹ <span id="dueAmount">0.00</span></span>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchBillDetails() {
+            // Get Bill ID from URL parameter (e.g., ?id=XYZ123)
+            const urlParams = new URLSearchParams(window.location.search);
+            const billId = urlParams.get('id');
+
+            if (!billId) {
+                alert("No Bill ID found!");
+                window.location.href = "purchase_views.html";
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "purchases", billId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    renderUI(data);
+                } else {
+                    alert("Bill not found in database!");
+                }
+            } catch (error) {
+                console.error("Error fetching bill details: ", error);
+                alert("Failed to load bill details.");
+            }
+        }
+
+        function renderUI(data) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('billContent').classList.remove('hidden');
+
+            // Set basic info
+            document.getElementById('supplierName').innerText = data.supplierName || 'Unknown Supplier';
+            document.getElementById('billNo').innerText = data.billNo || 'N/A';
+            
+            // Format Date
+            let displayDate = new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            document.getElementById('billDate').innerText = displayDate;
+
+            // Status Badge
+            const badge = document.getElementById('badgeStatus');
+            badge.innerText = data.paymentStatus;
+            if(data.paymentStatus === 'Paid') {
+                badge.className = "absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-md border bg-green-100 text-green-700 border-green-200";
+            } else {
+                badge.className = "absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-md border bg-red-100 text-red-700 border-red-200";
+            }
+
+            // Amounts
+            document.getElementById('grandTotal').innerText = data.grandTotal.toFixed(2);
+            document.getElementById('paidAmount').innerText = (data.paidAmount || data.grandTotal).toFixed(2);
+            document.getElementById('dueAmount').innerText = (data.dueAmount || 0).toFixed(2);
+
+            // Populate Table
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+
+            if (data.items && Array.isArray(data.items)) {
+                data.items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="font-bold">${item.name}</td>
+                        <td class="text-center">${item.qty} ${item.unit}</td>
+                        <td class="text-right">₹${item.perUnitPrice}</td>
+                        <td class="text-right font-bold text-indigo-700">₹${item.totalItemPrice}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500">No items recorded</td></tr>`;
+            }
+        }
+
+        window.onload = fetchBillDetails;
+    </script>
+</body>
+</html>

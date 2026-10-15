@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Views - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #f8fafc; 
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <a href="store.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="text-xl font-bold tracking-wider">PURCHASE HISTORY</h1>
+            <div class="w-6"></div>
+        </div>
+
+        <!-- Search & Filter Section (Sticky at top below header) -->
+        <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
+            <!-- Search by Name/Bill -->
+            <div class="relative mb-3">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="searchInput" placeholder="Search by Supplier or Bill No..." class="w-full border border-gray-300 py-2 pl-10 pr-3 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50">
+            </div>
+            
+            <!-- Date Filter -->
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-500 uppercase whitespace-nowrap">Filter by Date:</span>
+                <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-gray-50">
+                <button id="clearDateBtn" class="bg-gray-200 text-gray-600 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-300 hidden">Clear</button>
+            </div>
+        </div>
+
+        <!-- Bill List Content -->
+        <div class="scrollable-content" id="billsContainer">
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center mt-10 text-indigo-500">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                <p class="text-sm font-bold">Loading bills...</p>
+            </div>
+
+            <!-- List will be injected here via JavaScript -->
+            <div id="billsList" class="flex flex-col gap-3"></div>
+
+            <!-- Empty State (Hidden by default) -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center mt-10 text-gray-400">
+                <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i>
+                <p class="text-sm font-bold text-gray-500">No bills found</p>
+            </div>
+            
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allBills = []; // Store all fetched bills for local filtering
+
+        // Fetch Data from Firebase
+        async function fetchBills() {
+            const listContainer = document.getElementById('billsList');
+            const loading = document.getElementById('loadingIndicator');
+            const emptyState = document.getElementById('emptyState');
+            
+            try {
+                // Get all purchases ordered by timestamp (newest first)
+                const q = query(collection(db, "purchases"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                allBills = [];
+                querySnapshot.forEach((doc) => {
+                    allBills.push({ id: doc.id, ...doc.data() });
+                });
+
+                loading.classList.add('hidden');
+                
+                if(allBills.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    renderBills(allBills);
+                }
+
+            } catch (error) {
+                console.error("Error fetching bills: ", error);
+                loading.innerHTML = `<p class="text-red-500 text-sm">Failed to load data. Check console.</p>`;
+            }
+        }
+
+        // Render Bills to HTML
+        function renderBills(billsToRender) {
+            const listContainer = document.getElementById('billsList');
+            const emptyState = document.getElementById('emptyState');
+            listContainer.innerHTML = '';
+
+            if(billsToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            billsToRender.forEach(bill => {
+                // Determine Badge Color based on payment status
+                let badgeClass = bill.paymentStatus === 'Paid' 
+                    ? 'bg-green-100 text-green-700 border-green-200' 
+                    : 'bg-red-100 text-red-700 border-red-200';
+                
+                let dueText = bill.paymentStatus === 'Due' ? `<p class="text-[10px] text-red-500 font-bold mt-1">Due: ₹${bill.dueAmount}</p>` : '';
+
+                // Format Date for display
+                let displayDate = new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                if (displayDate === "Invalid Date") displayDate = bill.date || "N/A";
+
+                const card = document.createElement('a');
+                // Linking to a detail page passing the document ID in URL
+                card.href = `bill_detail.html?id=${bill.id}`;
+                card.className = "block bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transform transition active:scale-95 hover:shadow-md cursor-pointer";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800">${bill.supplierName}</h3>
+                            <p class="text-[10px] text-gray-500 font-semibold"><i class="far fa-calendar-alt mr-1"></i> ${displayDate}</p>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${badgeClass}">${bill.paymentStatus}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end mt-3 border-t border-gray-50 pt-2">
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Bill No.</p>
+                            <p class="text-xs font-bold text-gray-600">${bill.billNo || 'N/A'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Total Amount</p>
+                            <p class="text-lg font-bold text-indigo-600">₹${bill.grandTotal}</p>
+                            ${dueText}
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // Search and Filter Logic
+        const searchInput = document.getElementById('searchInput');
+        const dateFilter = document.getElementById('dateFilter');
+        const clearDateBtn = document.getElementById('clearDateBtn');
+
+        function applyFilters() {
+            const searchText = searchInput.value.toLowerCase();
+            const filterDate = dateFilter.value; // Format: YYYY-MM-DD
+
+            const filteredBills = allBills.filter(bill => {
+                // Match Search
+                const matchSearch = (bill.supplierName || "").toLowerCase().includes(searchText) || 
+                                    (bill.billNo || "").toLowerCase().includes(searchText);
+                
+                // Match Date
+                const matchDate = filterDate ? bill.date === filterDate : true;
+
+                return matchSearch && matchDate;
+            });
+
+            renderBills(filteredBills);
+
+            // Show/Hide Clear Button
+            if (filterDate) {
+                clearDateBtn.classList.remove('hidden');
+            } else {
+                clearDateBtn.classList.add('hidden');
+            }
+        }
+
+        // Event Listeners for filters
+        searchInput.addEventListener('input', applyFilters);
+        dateFilter.addEventListener('change', applyFilters);
+        
+        clearDateBtn.addEventListener('click', () => {
+            dateFilter.value = '';
+            applyFilters();
+        });
+
+        // Initialize fetching on page load
+        window.onload = fetchBills;
+
+    </script>
+</body>
+</html>

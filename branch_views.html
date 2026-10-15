@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collection History - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #f8fafc; 
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <!-- Back button takes user back to their specific branch page -->
+            <button onclick="window.history.back()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="text-xl font-bold tracking-wider uppercase" id="headerTitle">HISTORY</h1>
+            <div class="w-6"></div>
+        </div>
+
+        <!-- Filter Section (Sticky) -->
+        <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <!-- Locked Branch Name -->
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Branch</label>
+                    <div id="branchDisplay" class="w-full border border-indigo-200 p-2 rounded-xl text-sm font-bold text-indigo-800 bg-indigo-50 flex items-center gap-2">
+                        <i class="fas fa-store"></i> <span id="branchNameText">Loading...</span>
+                    </div>
+                </div>
+                <!-- Date Filter -->
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Filter by Date</label>
+                    <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 text-gray-700 font-bold">
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg border border-green-200 mt-2">
+                <span class="text-xs font-bold text-green-800 uppercase">Total Deposit:</span>
+                <span class="text-lg font-bold text-green-700">₹ <span id="filteredTotal">0.00</span></span>
+            </div>
+        </div>
+
+        <!-- History List Content -->
+        <div class="scrollable-content" id="historyContainer">
+            
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center mt-10 text-indigo-500">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                <p class="text-sm font-bold">Loading history...</p>
+            </div>
+
+            <div id="historyList" class="flex flex-col gap-3"></div>
+
+            <div id="emptyState" class="hidden flex-col items-center justify-center mt-10 text-gray-400">
+                <i class="fas fa-folder-open text-4xl mb-2 text-gray-300"></i>
+                <p class="text-sm font-bold text-gray-500">No records found</p>
+            </div>
+            
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allRecords = [];
+        let currentBranch = "Unknown";
+
+        // Get Branch Name from URL and Set UI
+        function setBranchFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const branchParam = urlParams.get('branch');
+            
+            if (branchParam) {
+                currentBranch = branchParam;
+                document.getElementById('branchNameText').innerText = currentBranch;
+                document.getElementById('headerTitle').innerText = currentBranch.toUpperCase() + " HISTORY";
+            } else {
+                document.getElementById('branchNameText').innerText = "All Branches";
+            }
+        }
+
+        // Fetch History from Firebase
+        async function fetchHistory() {
+            const loading = document.getElementById('loadingIndicator');
+            
+            try {
+                let q;
+                // If a specific branch is identified, fetch only that branch's data from Firebase directly
+                if (currentBranch !== "Unknown" && currentBranch !== "All Branches") {
+                    q = query(
+                        collection(db, "branch_daily_payments"), 
+                        where("branchName", "==", currentBranch)
+                    );
+                } else {
+                    q = query(collection(db, "branch_daily_payments"), orderBy("timestamp", "desc"));
+                }
+                
+                const querySnapshot = await getDocs(q);
+                
+                allRecords = [];
+                querySnapshot.forEach((doc) => {
+                    allRecords.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Since 'where' query doesn't auto-sort by descending date without a composite index, 
+                // we sort it manually via JavaScript to show newest first.
+                allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                loading.classList.add('hidden');
+                applyFilters(); // Render data
+
+            } catch (error) {
+                console.error("Error fetching history: ", error);
+                loading.innerHTML = `<p class="text-red-500 text-sm">Failed to load data. Check connection.</p>`;
+            }
+        }
+
+        // Render List based on data
+        function renderList(recordsToRender) {
+            const listContainer = document.getElementById('historyList');
+            const emptyState = document.getElementById('emptyState');
+            let totalAmount = 0;
+            
+            listContainer.innerHTML = '';
+
+            if(recordsToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('filteredTotal').innerText = "0.00";
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            recordsToRender.forEach(record => {
+                totalAmount += parseFloat(record.totalAmount) || 0;
+                
+                let displayDate = new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                if (displayDate === "Invalid Date") displayDate = record.date || "N/A";
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
+                        <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md"><i class="far fa-calendar-alt"></i> ${displayDate}</span>
+                        <span class="text-[10px] font-bold text-indigo-400 uppercase">Daily Entry</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
+                        <div class="bg-green-50 p-2 rounded border border-green-100">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Cash</p>
+                            <p class="font-bold text-green-700">₹${(record.cashAmount || 0).toFixed(2)}</p>
+                        </div>
+                        <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                            <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Online</p>
+                            <p class="font-bold text-blue-700">₹${(record.onlineAmount || 0).toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-50">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Total Deposited</span>
+                        <span class="text-lg font-bold text-indigo-600">₹${(record.totalAmount || 0).toFixed(2)}</span>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            document.getElementById('filteredTotal').innerText = totalAmount.toFixed(2);
+        }
+
+        // Filter by Date
+        function applyFilters() {
+            const filterDate = document.getElementById('dateFilter').value;
+
+            const filteredRecords = allRecords.filter(record => {
+                return filterDate ? record.date === filterDate : true;
+            });
+
+            renderList(filteredRecords);
+        }
+
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+
+        // Initialize
+        window.onload = () => {
+            setBranchFromURL();
+            fetchHistory();
+        };
+
+    </script>
+</body>
+</html>
