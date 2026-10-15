@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer History - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #f8fafc; 
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <!-- Back Button -->
+            <button onclick="window.history.back()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="text-lg font-bold tracking-wider uppercase" id="headerTitle">TRANSFER HISTORY</h1>
+            <div class="w-6"></div>
+        </div>
+
+        <!-- Filter & Summary Section -->
+        <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Branch Name</label>
+                    <div class="w-full border border-indigo-200 p-2 rounded-xl text-sm font-bold text-indigo-800 bg-indigo-50 flex items-center gap-2">
+                        <i class="fas fa-store"></i> <span id="branchNameText">Loading...</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Select Date</label>
+                    <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 font-bold text-gray-700">
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center bg-indigo-50 px-4 py-3 rounded-xl border border-indigo-200 mt-3 shadow-inner">
+                <span class="text-xs font-bold text-indigo-800 uppercase">Total Value Sent:</span>
+                <span class="text-xl font-bold text-indigo-700">₹ <span id="filteredTotal">0.00</span></span>
+            </div>
+        </div>
+
+        <!-- List Content -->
+        <div class="scrollable-content" id="historyContainer">
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center mt-10 text-indigo-500">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                <p class="text-sm font-bold">Loading records...</p>
+            </div>
+
+            <!-- List of Transfers -->
+            <div id="historyList" class="flex flex-col gap-3"></div>
+
+            <!-- Empty State (No Data Found) -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center mt-10 text-gray-400">
+                <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i>
+                <p class="text-sm font-bold text-gray-500">No transfers found</p>
+            </div>
+            
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allRecords = [];
+        let currentBranch = "Unknown";
+
+        // ১. URL থেকে ব্রাঞ্চের নাম নেওয়া (যেমন: ?branch=Sangrampur)
+        function setBranchFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const branchParam = urlParams.get('branch');
+            
+            if (branchParam) {
+                currentBranch = branchParam;
+                document.getElementById('branchNameText').innerText = currentBranch;
+                document.getElementById('headerTitle').innerText = currentBranch.toUpperCase();
+            } else {
+                document.getElementById('branchNameText').innerText = "All Branches";
+            }
+        }
+
+        // ২. ফায়ারবেস থেকে ওই ব্রাঞ্চের ডেটা নিয়ে আসা
+        async function fetchHistory() {
+            const loading = document.getElementById('loadingIndicator');
+            
+            try {
+                let q;
+                if (currentBranch !== "Unknown" && currentBranch !== "All Branches") {
+                    // শুধু সিলেক্ট করা ব্রাঞ্চের ডেটা খুঁজবে
+                    q = query(
+                        collection(db, "store_transfers"), 
+                        where("branchName", "==", currentBranch)
+                    );
+                } else {
+                    q = query(collection(db, "store_transfers"), orderBy("timestamp", "desc"));
+                }
+                
+                const querySnapshot = await getDocs(q);
+                
+                allRecords = [];
+                querySnapshot.forEach((doc) => {
+                    allRecords.push({ id: doc.id, ...doc.data() });
+                });
+
+                // নতুন ডেটা আগে দেখানোর জন্য সর্টিং (Sorting by Date)
+                allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                loading.classList.add('hidden');
+                applyFilters(); 
+
+            } catch (error) {
+                console.error("Error fetching history: ", error);
+                loading.innerHTML = `<p class="text-red-500 text-sm">Failed to load data. Check connection.</p>`;
+            }
+        }
+
+        // ৩. লিস্টগুলো এইচটিএমএল (HTML) এ দেখানো
+        function renderList(recordsToRender) {
+            const listContainer = document.getElementById('historyList');
+            const emptyState = document.getElementById('emptyState');
+            let totalAmount = 0;
+            
+            listContainer.innerHTML = '';
+
+            if(recordsToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('filteredTotal').innerText = "0.00";
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            recordsToRender.forEach(record => {
+                totalAmount += parseFloat(record.transferAmount) || 0;
+                
+                // ডেট ফরমেট করা
+                let displayDate = new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                if (displayDate === "Invalid Date") displayDate = record.date || "N/A";
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center transform transition hover:scale-[1.01]";
+                
+                card.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md mb-2 inline-block">
+                            <i class="far fa-calendar-alt text-indigo-400"></i> ${displayDate}
+                        </span>
+                        <p class="text-xs font-bold text-gray-800 mt-1">Remarks/Bill:</p>
+                        <p class="text-[11px] text-gray-500">${record.remarks || 'No details added'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Sent Value</p>
+                        <p class="text-lg font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100">
+                            ₹${(record.transferAmount || 0).toFixed(2)}
+                        </p>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            // টোটাল আপডেট করা
+            document.getElementById('filteredTotal').innerText = totalAmount.toFixed(2);
+        }
+
+        // ৪. ডেট দিয়ে ফিল্টার (সার্চ) করা
+        function applyFilters() {
+            const filterDate = document.getElementById('dateFilter').value;
+            const filteredRecords = allRecords.filter(record => {
+                return filterDate ? record.date === filterDate : true;
+            });
+            renderList(filteredRecords);
+        }
+
+        // ক্যালেন্ডারে ডেট পাল্টালে অটোমেটিক ফিল্টার হবে
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+
+        // পেজ লোড হলে ফাংশনগুলো রান করবে
+        window.onload = () => {
+            setBranchFromURL();
+            fetchHistory();
+        };
+
+    </script>
+</body>
+</html>
