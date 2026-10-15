@@ -42,25 +42,45 @@
 
         <!-- Filter Section (Sticky) -->
         <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
-            <div class="grid grid-cols-2 gap-3 mb-2">
-                <!-- Locked Branch Name -->
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Branch</label>
-                    <div id="branchDisplay" class="w-full border border-indigo-200 p-2 rounded-xl text-sm font-bold text-indigo-800 bg-indigo-50 flex items-center gap-2">
-                        <i class="fas fa-store"></i> <span id="branchNameText">Loading...</span>
-                    </div>
+            
+            <!-- Locked Branch Name -->
+            <div class="mb-3">
+                <label class="text-[10px] font-bold text-gray-500 uppercase">Branch</label>
+                <div id="branchDisplay" class="w-full border border-indigo-200 p-2 rounded-xl text-sm font-bold text-indigo-800 bg-indigo-50 flex items-center gap-2">
+                    <i class="fas fa-store"></i> <span id="branchNameText">Loading...</span>
                 </div>
-                <!-- Date Filter -->
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Filter by Date</label>
-                    <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 text-gray-700 font-bold">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">From Date</label>
+                    <input type="date" id="fromDate" class="w-full border border-gray-300 p-2 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 text-gray-700 font-bold">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">To Date</label>
+                    <input type="date" id="toDate" class="w-full border border-gray-300 p-2 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 text-gray-700 font-bold">
                 </div>
             </div>
             
-            <div class="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg border border-green-200 mt-2">
-                <span class="text-xs font-bold text-green-800 uppercase">Total Deposit:</span>
-                <span class="text-lg font-bold text-green-700">₹ <span id="filteredTotal">0.00</span></span>
+            <!-- Filtered Totals Display -->
+            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                <div class="grid grid-cols-2 gap-2 text-center mb-2 border-b border-indigo-200 pb-2">
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Total Cash</p>
+                        <p class="text-sm font-bold text-green-600">₹ <span id="filteredCash">0.00</span></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Total Online</p>
+                        <p class="text-sm font-bold text-blue-600">₹ <span id="filteredOnline">0.00</span></p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-xs font-bold text-indigo-800 uppercase">Total Deposit:</span>
+                    <span class="text-lg font-bold text-indigo-700">₹ <span id="filteredTotal">0.00</span></span>
+                </div>
             </div>
+
         </div>
 
         <!-- History List Content -->
@@ -123,7 +143,6 @@
             
             try {
                 let q;
-                // If a specific branch is identified, fetch only that branch's data from Firebase directly
                 if (currentBranch !== "Unknown" && currentBranch !== "All Branches") {
                     q = query(
                         collection(db, "branch_daily_payments"), 
@@ -140,8 +159,7 @@
                     allRecords.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Since 'where' query doesn't auto-sort by descending date without a composite index, 
-                // we sort it manually via JavaScript to show newest first.
+                // Sort newest first
                 allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 loading.classList.add('hidden');
@@ -157,12 +175,17 @@
         function renderList(recordsToRender) {
             const listContainer = document.getElementById('historyList');
             const emptyState = document.getElementById('emptyState');
+            
+            let totalCash = 0;
+            let totalOnline = 0;
             let totalAmount = 0;
             
             listContainer.innerHTML = '';
 
             if(recordsToRender.length === 0) {
                 emptyState.classList.remove('hidden');
+                document.getElementById('filteredCash').innerText = "0.00";
+                document.getElementById('filteredOnline').innerText = "0.00";
                 document.getElementById('filteredTotal').innerText = "0.00";
                 return;
             } else {
@@ -170,6 +193,8 @@
             }
 
             recordsToRender.forEach(record => {
+                totalCash += parseFloat(record.cashAmount) || 0;
+                totalOnline += parseFloat(record.onlineAmount) || 0;
                 totalAmount += parseFloat(record.totalAmount) || 0;
                 
                 let displayDate = new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -203,21 +228,39 @@
                 listContainer.appendChild(card);
             });
 
+            // Update UI Totals
+            document.getElementById('filteredCash').innerText = totalCash.toFixed(2);
+            document.getElementById('filteredOnline').innerText = totalOnline.toFixed(2);
             document.getElementById('filteredTotal').innerText = totalAmount.toFixed(2);
         }
 
-        // Filter by Date
+        // Filter by Date Range
         function applyFilters() {
-            const filterDate = document.getElementById('dateFilter').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
 
             const filteredRecords = allRecords.filter(record => {
-                return filterDate ? record.date === filterDate : true;
+                let match = true;
+                
+                // If From Date is selected and record date is earlier, hide it
+                if (fromDate && record.date < fromDate) {
+                    match = false;
+                }
+                
+                // If To Date is selected and record date is later, hide it
+                if (toDate && record.date > toDate) {
+                    match = false;
+                }
+                
+                return match;
             });
 
             renderList(filteredRecords);
         }
 
-        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        // Add event listeners for both dates
+        document.getElementById('fromDate').addEventListener('change', applyFilters);
+        document.getElementById('toDate').addEventListener('change', applyFilters);
 
         // Initialize
         window.onload = () => {
