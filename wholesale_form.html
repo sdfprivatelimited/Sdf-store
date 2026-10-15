@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wholesale Bill Entry - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #ffffff; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        .suggestions-box {
+            display: none;
+            position: absolute;
+            width: 100%;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+        .suggestion-item:hover { background-color: #eff6ff; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <a href="wholesale.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="text-xl font-bold tracking-wider uppercase">Wholesale Entry</h1>
+            <div class="w-6"></div>
+        </div>
+
+        <div class="p-4 flex-1">
+            
+            <!-- STEP 1: Bill Information -->
+            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-4" id="billInfoSection">
+                <h3 class="text-xs font-bold text-indigo-800 uppercase mb-2">1. Bill Information</h3>
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Date</label>
+                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg text-sm bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Bill No (Optional)</label>
+                        <input type="text" id="billNo" placeholder="Bill / Challan" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
+                    </div>
+                </div>
+                <div>
+                    <!-- Supplier Name changed to Customer Name -->
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Customer Name</label>
+                    <input type="text" id="customerName" placeholder="Enter Customer / Party Name" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
+                </div>
+            </div>
+
+            <hr class="border-gray-200 mb-4">
+
+            <!-- STEP 2: Product Entry -->
+            <div id="productEntrySection">
+                <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">2. Add Product</h3>
+                
+                <div class="relative mb-3">
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Product Name</label>
+                        <button type="button" onclick="addNewProductMode()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded"><i class="fas fa-plus"></i> New Product</button>
+                    </div>
+                    <input type="text" id="productName" placeholder="Search product..." class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" autocomplete="off" oninput="showSuggestions(this.value)">
+                    <div id="suggestionBox" class="suggestions-box mt-1"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Unit Type</label>
+                        <select id="unitType" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" onchange="updateQuantityLabel()">
+                            <option value="Kg">Kg</option>
+                            <option value="Gram">Gram</option>
+                            <option value="Pack">Pack</option>
+                            <option value="Box">Box</option>
+                            <option value="Piece">Piece</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase" id="qtyLabel">Total Kg</label>
+                        <input type="number" id="quantity" placeholder="Quantity" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateUnitPrice()">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Selling Price</label>
+                        <input type="number" id="itemTotalPrice" placeholder="₹ Total price" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateUnitPrice()">
+                        <p class="text-[10px] font-bold text-green-600 mt-1" id="unitPriceDisplay">Per unit: ₹ 0.00</p>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Discount (Optional)</label>
+                        <input type="number" id="discountAmount" placeholder="₹ Discount" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
+                    </div>
+                </div>
+
+                <button onclick="addProductToBill()" type="button" class="w-full bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold py-3 rounded-xl shadow-sm transform transition hover:scale-105 active:scale-95 text-sm flex justify-center items-center gap-2">
+                    <i class="fas fa-cart-plus"></i> Add Product
+                </button>
+            </div>
+
+            <hr class="border-gray-200 my-5">
+
+            <!-- STEP 3: Bill Summary & Payment -->
+            <div id="billSummarySection" class="hidden">
+                <div class="flex justify-between items-end mb-2">
+                    <h3 class="text-xs font-bold text-green-700 uppercase">3. Final Bill Summary</h3>
+                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded" id="itemCountBadge">0 Items</span>
+                </div>
+                
+                <div id="productList" class="flex flex-col gap-2 mb-4 max-h-48 overflow-y-auto pr-1"></div>
+
+                <!-- Grand Total -->
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-4 flex justify-between items-center">
+                    <span class="text-sm font-bold text-green-800">Grand Total:</span>
+                    <span class="text-2xl font-bold text-green-700">₹ <span id="grandTotal">0.00</span></span>
+                </div>
+
+                <!-- Payment Status Section -->
+                <div class="bg-white p-3 rounded-xl border border-gray-200 mb-4 shadow-sm">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Payment Status</label>
+                    <select id="paymentStatus" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none mt-1" onchange="togglePaymentDue()">
+                        <option value="Paid">Full Paid</option>
+                        <option value="Due">Due (Baki Ache)</option>
+                    </select>
+
+                    <div id="dueSection" class="hidden mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                        <label class="text-[10px] font-bold text-red-600 uppercase">Amount Received</label>
+                        <input type="number" id="paidAmount" placeholder="Enter amount paid by customer" class="w-full border border-red-300 p-2 rounded-lg text-sm outline-none mt-1" oninput="calculateDue()">
+                        <div class="mt-2 text-right">
+                            <span class="text-xs font-bold text-gray-600">Total Baki: </span>
+                            <span class="text-lg font-bold text-red-600">₹ <span id="dueAmount">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Full Bill Button -->
+                <button onclick="saveFullBill()" id="saveBtn" type="button" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="fas fa-save"></i> Save Wholesale Bill
+                </button>
+            </div>
+            
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.saveFullBill = async function() {
+            if(window.billItems.length === 0) return;
+            
+            const btn = document.getElementById('saveBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const customerName = document.getElementById('customerName').value || "Unknown Customer";
+            const billNo = document.getElementById('billNo').value || "";
+            const entryDate = document.getElementById('entryDate').value;
+            const paymentStatus = document.getElementById('paymentStatus').value;
+            const grandTotal = parseFloat(document.getElementById('grandTotal').innerText);
+            
+            let paidAmount = grandTotal;
+            let dueAmount = 0;
+
+            if (paymentStatus === 'Due') {
+                paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+                dueAmount = grandTotal - paidAmount;
+            }
+
+            try {
+                // Save Wholesale Bill Data to Firebase (Separate collection)
+                await addDoc(collection(db, "wholesale_bills"), {
+                    customerName: customerName,
+                    billNo: billNo,
+                    date: entryDate,
+                    paymentStatus: paymentStatus,
+                    grandTotal: grandTotal,
+                    paidAmount: paidAmount,
+                    dueAmount: dueAmount,
+                    items: window.billItems,
+                    timestamp: serverTimestamp()
+                });
+
+                alert("✅ Wholesale Bill Saved Successfully!");
+                
+                // Go back to wholesale dashboard
+                window.location.href = "wholesale.html";
+                
+            } catch (error) {
+                console.error("Error saving bill:", error);
+                alert("❌ Problem saving bill. Check internet connection.");
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Wholesale Bill';
+                btn.disabled = false;
+            }
+        };
+    </script>
+
+    <!-- Normal UI Scripts -->
+    <script>
+        document.getElementById('entryDate').valueAsDate = new Date();
+        window.billItems = []; 
+
+        const existingProducts = ["Almond (Kath Badam)", "Cashew Nut (Kaju)", "Dates (Khejur)", "Raisin (Kishmish)", "Pistachio (Pesta)"];
+        const productNameInput = document.getElementById('productName');
+        const suggestionBox = document.getElementById('suggestionBox');
+
+        function showSuggestions(query) {
+            suggestionBox.innerHTML = '';
+            if (query.length === 0) { suggestionBox.style.display = 'none'; return; }
+            
+            const filtered = existingProducts.filter(item => item.toLowerCase().includes(query.toLowerCase()));
+            if (filtered.length > 0) {
+                filtered.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item text-sm font-medium text-gray-700';
+                    div.innerText = item;
+                    div.onclick = () => { productNameInput.value = item; suggestionBox.style.display = 'none'; };
+                    suggestionBox.appendChild(div);
+                });
+                suggestionBox.style.display = 'block';
+            } else {
+                suggestionBox.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('click', (e) => { if (e.target !== productNameInput) suggestionBox.style.display = 'none'; });
+        function addNewProductMode() { productNameInput.value = ''; productNameInput.focus(); suggestionBox.style.display = 'none'; }
+        function updateQuantityLabel() { document.getElementById('qtyLabel').innerText = `Total ${document.getElementById('unitType').value}`; }
+
+        function calculateUnitPrice() {
+            const qty = parseFloat(document.getElementById('quantity').value);
+            const total = parseFloat(document.getElementById('itemTotalPrice').value);
+            const unit = document.getElementById('unitType').value;
+            const display = document.getElementById('unitPriceDisplay');
+            
+            if (qty > 0 && total > 0) {
+                const perUnit = (total / qty).toFixed(2);
+                display.innerText = `Per 1 ${unit}: ₹ ${perUnit}`;
+            } else {
+                display.innerText = `Per 1 ${unit}: ₹ 0.00`;
+            }
+        }
+
+        function calculateDue() {
+            const grandTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
+            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+            let due = grandTotal - paid;
+            if (due < 0) due = 0;
+            document.getElementById('dueAmount').innerText = due.toFixed(2);
+        }
+
+        function togglePaymentDue() {
+            const status = document.getElementById('paymentStatus').value;
+            const dueSection = document.getElementById('dueSection');
+            if(status === 'Due') {
+                dueSection.classList.remove('hidden');
+                document.getElementById('paidAmount').value = '';
+                calculateDue();
+            } else {
+                dueSection.classList.add('hidden');
+            }
+        }
+
+        function lockBillInfo(lock) {
+            const fields = ['entryDate', 'billNo', 'customerName'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = lock;
+                if(lock) el.classList.add('bg-gray-100', 'text-gray-500');
+                else el.classList.remove('bg-gray-100', 'text-gray-500');
+            });
+        }
+
+        function addProductToBill() {
+            const name = productNameInput.value.trim();
+            const unit = document.getElementById('unitType').value;
+            const qty = parseFloat(document.getElementById('quantity').value);
+            const totalItemPrice = parseFloat(document.getElementById('itemTotalPrice').value);
+            const discount = document.getElementById('discountAmount').value || 0;
+
+            if(!name || !qty || !totalItemPrice) {
+                alert("Please enter Product Name, Quantity, and Total Price!");
+                return;
+            }
+
+            const finalPrice = totalItemPrice - discount;
+            const perUnitPrice = (finalPrice / qty).toFixed(2);
+            
+            window.billItems.push({ name, unit, qty, totalItemPrice: finalPrice, perUnitPrice, discount });
+
+            lockBillInfo(true);
+            productNameInput.value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('itemTotalPrice').value = '';
+            document.getElementById('discountAmount').value = '';
+            document.getElementById('unitPriceDisplay').innerText = `Per unit: ₹ 0.00`;
+
+            window.renderCart();
+        }
+
+        window.renderCart = function() {
+            const listContainer = document.getElementById('productList');
+            const summarySection = document.getElementById('billSummarySection');
+            listContainer.innerHTML = '';
+
+            if (window.billItems.length === 0) {
+                summarySection.classList.add('hidden');
+                lockBillInfo(false);
+                return;
+            }
+
+            summarySection.classList.remove('hidden');
+            let grandTotal = 0;
+
+            window.billItems.forEach((item, index) => {
+                grandTotal += item.totalItemPrice;
+                const div = document.createElement('div');
+                div.className = "bg-white p-3 rounded-lg border border-gray-200 flex justify-between items-center shadow-sm";
+                div.innerHTML = `
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">${item.name}</h4>
+                        <p class="text-[10px] text-gray-500">${item.qty} ${item.unit} | Unit: ₹${item.perUnitPrice} | Total: ₹${item.totalItemPrice}</p>
+                    </div>
+                    <button onclick="deleteProduct(${index})" class="text-red-500 bg-red-50 p-2 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-100 transition">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+            document.getElementById('itemCountBadge').innerText = `${window.billItems.length} Items`;
+            calculateDue(); 
+        }
+
+        window.deleteProduct = function(index) {
+            window.billItems.splice(index, 1);
+            window.renderCart();
+        }
+    </script>
+</body>
+</html>

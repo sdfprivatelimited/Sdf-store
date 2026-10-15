@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wholesale Views - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #f8fafc; 
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .scrollable-content { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <a href="wholesale.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="text-xl font-bold tracking-wider uppercase">Wholesale History</h1>
+            <div class="w-6"></div>
+        </div>
+
+        <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
+            <input type="text" id="searchInput" placeholder="Search by Customer or Bill No..." class="w-full border border-gray-300 py-2 px-3 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 mb-3">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-500 uppercase">Date:</span>
+                <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl text-sm focus:outline-none bg-gray-50">
+            </div>
+        </div>
+
+        <!-- Bill List -->
+        <div class="scrollable-content" id="billsContainer">
+            <div id="loadingIndicator" class="text-center mt-10 text-indigo-500 font-bold"><i class="fas fa-spinner fa-spin text-3xl mb-2"></i><p>Loading...</p></div>
+            <div id="billsList" class="flex flex-col gap-3"></div>
+            <div id="emptyState" class="hidden text-center mt-10 text-gray-400 font-bold"><p>No bills found</p></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const db = getFirestore(initializeApp(firebaseConfig));
+        let allBills = [];
+
+        async function fetchBills() {
+            try {
+                const q = query(collection(db, "wholesale_bills"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => allBills.push({ id: doc.id, ...doc.data() }));
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                renderBills(allBills);
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        function renderBills(bills) {
+            const listContainer = document.getElementById('billsList');
+            listContainer.innerHTML = '';
+            if(bills.length === 0) document.getElementById('emptyState').classList.remove('hidden');
+            else document.getElementById('emptyState').classList.add('hidden');
+
+            bills.forEach(bill => {
+                let displayDate = new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                let badgeClass = bill.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+
+                const card = document.createElement('a');
+                card.href = `wholesale_bill_detail.html?id=${bill.id}`;
+                card.className = "block bg-white p-4 rounded-xl shadow-sm border border-gray-200";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-indigo-900">${bill.customerName}</h3>
+                            <p class="text-[11px] text-gray-500 font-bold"><i class="far fa-calendar-alt"></i> ${displayDate}</p>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded border ${badgeClass}">${bill.paymentStatus}</span>
+                    </div>
+                    <div class="flex justify-between items-end mt-2 pt-2 border-t border-gray-100">
+                        <div>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Bill No</p>
+                            <p class="text-xs font-bold text-gray-700">${bill.billNo || 'N/A'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Total</p>
+                            <p class="text-lg font-bold text-green-600">₹${bill.grandTotal}</p>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const date = document.getElementById('dateFilter').value;
+            const filtered = allBills.filter(bill => {
+                const matchSearch = (bill.customerName || "").toLowerCase().includes(search) || (bill.billNo || "").toLowerCase().includes(search);
+                const matchDate = date ? bill.date === date : true;
+                return matchSearch && matchDate;
+            });
+            renderBills(filtered);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        window.onload = fetchBills;
+    </script>
+</body>
+</html>
