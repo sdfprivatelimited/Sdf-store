@@ -32,14 +32,28 @@
 
         <div class="p-4 flex-1">
             
-            <!-- Current Stock Display -->
-            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 mb-5 text-center shadow-sm relative overflow-hidden">
+            <!-- Monthly Collection Display -->
+            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 mb-5 shadow-sm relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-10">
-                    <i class="fas fa-store text-6xl text-indigo-900"></i>
+                    <i class="fas fa-calendar-check text-6xl text-indigo-900"></i>
                 </div>
-                <p class="text-xs font-bold text-indigo-800 uppercase mb-1">Current Stock Value</p>
-                <h2 class="text-3xl font-bold text-indigo-700">₹ <span id="currentStockValue">0.00</span></h2>
-                <p class="text-[10px] text-gray-500 mt-1">Available in Magrahat branch</p>
+                <p class="text-xs font-bold text-indigo-800 uppercase mb-3">This Month's Collection</p>
+                
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-bold"><i class="fas fa-money-bill-wave text-green-500"></i> Cash</p>
+                        <h3 class="text-lg font-bold text-green-700">₹ <span id="monthCash">0.00</span></h3>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-500 font-bold"><i class="fas fa-mobile-alt text-blue-500"></i> Online</p>
+                        <h3 class="text-lg font-bold text-blue-700">₹ <span id="monthOnline">0.00</span></h3>
+                    </div>
+                </div>
+                
+                <div class="border-t border-indigo-200 pt-2 mt-2">
+                    <p class="text-[10px] text-gray-500 font-bold uppercase">Total Collection (This Month)</p>
+                    <h2 class="text-2xl font-bold text-indigo-700">₹ <span id="monthTotal">0.00</span></h2>
+                </div>
             </div>
 
             <!-- Daily Entry Form Box -->
@@ -47,14 +61,11 @@
                 <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 border-b pb-2"><i class="fas fa-cash-register mr-1"></i> Today's Collection Entry</h3>
                 
                 <form id="collectionForm" class="flex flex-col gap-3">
-                    
-                    <!-- Date -->
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 uppercase">Select Date</label>
                         <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:border-indigo-500 bg-gray-50 text-sm font-bold text-gray-700" required>
                     </div>
 
-                    <!-- Cash & Online -->
                     <div class="grid grid-cols-2 gap-3 mt-1">
                         <div>
                             <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fas fa-money-bill-wave text-green-500"></i> Cash (₹)</label>
@@ -66,21 +77,18 @@
                         </div>
                     </div>
 
-                    <!-- Auto Total Display -->
                     <div class="bg-gray-100 p-3 rounded-lg flex justify-between items-center mt-2 border border-gray-200">
                         <span class="text-xs font-bold text-gray-600 uppercase">Total Today:</span>
                         <span class="text-lg font-bold text-gray-800">₹ <span id="totalAmount">0.00</span></span>
                     </div>
 
-                    <!-- Submit Button -->
                     <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg mt-2 shadow-sm transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Submit & Auto Deduct
+                        <i class="fas fa-paper-plane"></i> Submit Collection
                     </button>
                 </form>
             </div>
 
             <!-- Views / History Button -->
-            <!-- খেয়াল করুন এখানে branch=Magrahat দেওয়া আছে -->
             <a href="branch_views.html?branch=Magrahat" class="w-full block text-center bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold py-3 rounded-lg shadow-sm transform transition hover:scale-105 active:scale-95">
                 <i class="fas fa-history mr-1"></i> View Collection History
             </a>
@@ -92,7 +100,7 @@
     <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
@@ -107,34 +115,48 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 👉 Branch Name set to Magrahat
+        // Branch Name Setup
         const BRANCH_NAME = "Magrahat"; 
 
-        // 1. Fetch Current Stock for this Branch
-        async function fetchBranchStock() {
+        async function fetchMonthlyCollection() {
             try {
-                const branchRef = doc(db, "branches_data", BRANCH_NAME);
-                const branchSnap = await getDoc(branchRef);
+                const currentDate = new Date();
+                const currentMonthString = currentDate.toISOString().slice(0, 7); 
+
+                const q = query(
+                    collection(db, "branch_daily_payments"), 
+                    where("branchName", "==", BRANCH_NAME)
+                );
                 
-                if (branchSnap.exists()) {
-                    const data = branchSnap.data();
-                    document.getElementById('currentStockValue').innerText = (data.totalStockValue || 0).toFixed(2);
-                } else {
-                    // Create document if not exists
-                    await setDoc(branchRef, { totalStockValue: 0, lastUpdated: serverTimestamp() });
-                    document.getElementById('currentStockValue').innerText = "0.00";
-                }
+                const querySnapshot = await getDocs(q);
+                
+                let monthTotalCash = 0;
+                let monthTotalOnline = 0;
+                let monthGrandTotal = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.date && data.date.startsWith(currentMonthString)) {
+                        monthTotalCash += parseFloat(data.cashAmount) || 0;
+                        monthTotalOnline += parseFloat(data.onlineAmount) || 0;
+                        monthGrandTotal += parseFloat(data.totalAmount) || 0;
+                    }
+                });
+
+                document.getElementById('monthCash').innerText = monthTotalCash.toFixed(2);
+                document.getElementById('monthOnline').innerText = monthTotalOnline.toFixed(2);
+                document.getElementById('monthTotal').innerText = monthGrandTotal.toFixed(2);
+
             } catch (error) {
-                console.error("Error fetching branch stock:", error);
+                console.error("Error fetching monthly collection:", error);
             }
         }
 
-        // 2. Submit Collection & Deduct Stock
         document.getElementById('collectionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             btn.disabled = true;
 
             const entryDate = document.getElementById('entryDate').value;
@@ -149,7 +171,6 @@
             }
 
             try {
-                // A) Save the collection record
                 await addDoc(collection(db, "branch_daily_payments"), {
                     branchName: BRANCH_NAME,
                     date: entryDate,
@@ -159,52 +180,33 @@
                     timestamp: serverTimestamp()
                 });
 
-                // B) Auto Deduct from Branch Stock Value
-                const branchRef = doc(db, "branches_data", BRANCH_NAME);
-                const branchSnap = await getDoc(branchRef);
+                alert(`✅ Payment Saved for ${BRANCH_NAME}!`);
                 
-                if (branchSnap.exists()) {
-                    const currentStockValue = parseFloat(branchSnap.data().totalStockValue) || 0;
-                    let newStockValue = currentStockValue - totalAmount;
-                    
-                    // Update database
-                    await updateDoc(branchRef, {
-                        totalStockValue: newStockValue,
-                        lastUpdated: serverTimestamp()
-                    });
-
-                    // Update UI immediately
-                    document.getElementById('currentStockValue').innerText = newStockValue.toFixed(2);
-                }
-
-                alert(`✅ Payment Saved for ${BRANCH_NAME}!\n₹${totalAmount} has been deducted from your stock.`);
-                
-                // Clear inputs
                 document.getElementById('cashAmount').value = '';
                 document.getElementById('onlineAmount').value = '';
                 document.getElementById('totalAmount').innerText = '0.00';
                 
+                fetchMonthlyCollection();
+                
             } catch (error) {
                 console.error("Error saving payment:", error);
-                alert("❌ Problem saving data.");
+                alert("❌ Problem saving data. Check internet connection.");
             }
 
             resetButton(btn);
         });
 
         function resetButton(btn) {
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit & Auto Deduct';
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Collection';
             btn.disabled = false;
         }
 
-        // Run on load
         window.onload = () => {
             document.getElementById('entryDate').valueAsDate = new Date();
-            fetchBranchStock();
+            fetchMonthlyCollection();
         };
     </script>
 
-    <!-- Normal Script for Calculation -->
     <script>
         function calculateTotal() {
             const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
