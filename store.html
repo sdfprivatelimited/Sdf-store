@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDF STORE - Store Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #ffffff; 
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-30">
+            <a href="index.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <h1 class="text-xl font-bold tracking-wider" id="headerTitle">STORE DASHBOARD</h1>
+            <button class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-bell"></i></button>
+        </div>
+
+        <!-- Scrollable Middle Content -->
+        <div class="scrollable-content bg-gray-50">
+            
+            <!-- Top Dashboard Stats -->
+            <div class="p-4 grid grid-cols-3 gap-3">
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <div class="bg-blue-100 text-blue-600 p-2 rounded-full mb-1"><i class="fas fa-code-branch"></i></div>
+                    <span class="text-xl font-bold text-gray-800" id="valBranches">3</span>
+                    <span class="text-gray-500 text-[10px] font-bold uppercase mt-1">Branches</span>
+                </div>
+                
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center text-center">
+                    <div class="bg-green-100 text-green-600 p-2 rounded-full mb-1"><i class="fas fa-rupee-sign"></i></div>
+                    <span class="text-xl font-bold text-gray-800" id="valTotalAmount">...</span>
+                    <span class="text-gray-500 text-[10px] font-bold uppercase mt-1">Store Value</span>
+                </div>
+                
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                    <div class="bg-orange-100 text-orange-600 p-2 rounded-full mb-1"><i class="fas fa-box-open"></i></div>
+                    <span class="text-xl font-bold text-gray-800" id="valTotalStock">...</span>
+                    <span class="text-gray-500 text-[10px] font-bold uppercase mt-1">Total Stock</span>
+                </div>
+            </div>
+
+            <!-- Inventory Management -->
+            <div class="px-4 mb-4 mt-2">
+                <h3 class="text-gray-800 font-bold mb-3 text-sm uppercase">Inventory Management</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <a href="purchase_entry.html" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-cart-plus text-3xl text-indigo-500 mb-2"></i>
+                        <span class="text-sm font-bold text-gray-700 text-center">Purchase Entry</span>
+                    </a>
+                    <a href="purchase_views.html" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-list-alt text-3xl text-blue-500 mb-2"></i>
+                        <span class="text-sm font-bold text-gray-700 text-center">Purchase Views</span>
+                    </a>
+                </div>
+                <!-- Transfer Button Added Here -->
+                <a href="transfer.html" class="w-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95">
+                    <i class="fas fa-truck-loading text-lg"></i> Transfer to Branch
+                </a>
+            </div>
+
+            <!-- Supplier Billing Section -->
+            <div class="px-4 mb-6">
+                <h3 class="text-gray-800 font-bold mb-3 text-sm uppercase">Supplier Bills</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="pending_bills.html" class="bg-red-50 border border-red-100 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-file-invoice-dollar text-3xl text-red-500 mb-2"></i>
+                        <span class="text-sm font-bold text-red-700 text-center">Pending</span>
+                        <span class="text-xs text-red-500 mt-1">₹ <span id="valPending">...</span></span>
+                    </a>
+                    
+                    <a href="paid_bills.html" class="bg-green-50 border border-green-100 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-check-double text-3xl text-green-500 mb-2"></i>
+                        <span class="text-sm font-bold text-green-700 text-center">Paid</span>
+                        <span class="text-xs text-green-500 mt-1">View History</span>
+                    </a>
+                </div>
+            </div>
+            <div class="h-10"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
+            measurementId: "G-WH88QMN0Z5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchDashboardData() {
+            try {
+                // 1. Fetch Purchases (মাল কেনা)
+                const purchaseSnap = await getDocs(collection(db, "purchases"));
+                let totalPurchasedValue = 0;
+                let totalStock = 0;
+                let totalPending = 0;
+
+                purchaseSnap.forEach((doc) => {
+                    const data = doc.data();
+                    totalPurchasedValue += parseFloat(data.grandTotal) || 0;
+                    totalPending += parseFloat(data.dueAmount) || 0;
+
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            totalStock += parseFloat(item.qty) || 0;
+                        });
+                    }
+                });
+
+                // 2. Fetch Transfers (ব্রাঞ্চে পাঠানো মাল)
+                const transferSnap = await getDocs(collection(db, "store_transfers"));
+                let totalTransferredValue = 0;
+                
+                transferSnap.forEach((doc) => {
+                    const data = doc.data();
+                    totalTransferredValue += parseFloat(data.transferAmount) || 0;
+                });
+
+                // 3. Calculate Actual Main Store Value (কেনা মাল - পাঠানো মাল)
+                let actualStoreValue = totalPurchasedValue - totalTransferredValue;
+                if(actualStoreValue < 0) actualStoreValue = 0;
+
+                // Update UI
+                document.getElementById('valTotalAmount').innerText = formatNumber(actualStoreValue);
+                document.getElementById('valTotalStock').innerText = totalStock;
+                document.getElementById('valPending').innerText = formatNumber(totalPending);
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById('valTotalAmount').innerText = "0";
+                document.getElementById('valTotalStock').innerText = "0";
+                document.getElementById('valPending').innerText = "0";
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 100000) return (num / 100000).toFixed(1) + 'L';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toFixed(2);
+        }
+
+        window.onload = fetchDashboardData;
+    </script>
+</body>
+</html>
