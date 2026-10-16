@@ -19,7 +19,7 @@
 <body>
     <div class="app-container">
         <!-- Header -->
-        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
             <button onclick="window.history.back()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></button>
             <h1 class="text-xl font-bold tracking-wider uppercase">Bill Details</h1>
             <div class="w-6"></div>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- Firebase Script -->
+    <!-- Firebase & WhatsApp Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
@@ -53,7 +53,8 @@
             const docSnap = await getDoc(doc(db, "wholesale_bills", billId));
             if (docSnap.exists()) {
                 document.getElementById('loading').style.display = 'none';
-                renderData(docSnap.data(), billId);
+                window.currentBillData = docSnap.data(); // Save globally for WhatsApp
+                renderData(window.currentBillData, billId);
             }
         }
 
@@ -107,13 +108,59 @@
                     <div class="flex justify-between text-base font-bold text-green-700"><span>Grand Total:</span><span>₹${data.grandTotal}</span></div>
                 </div>
 
-                <!-- Redirects to Thermal Print Page -->
-                <a href="thermal_print.html?id=${currentBillId}" class="block w-full text-center bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
-                    <i class="fas fa-receipt text-xl mr-2"></i> Generate Bill
-                </a>
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    <a href="thermal_print.html?id=${currentBillId}" class="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                        <i class="fas fa-receipt text-xl mb-1 block"></i> Generate Bill
+                    </a>
+                    
+                    <button onclick="sendWhatsApp()" class="block w-full text-center bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                        <i class="fab fa-whatsapp text-xl mb-1 block"></i> WhatsApp Bill
+                    </button>
+                </div>
             `;
             document.getElementById('sheetView').classList.remove('hidden');
         }
+
+        // WhatsApp Share Function (Fixed for Android WebView)
+        window.sendWhatsApp = function() {
+            if (!window.currentBillData) return;
+            const data = window.currentBillData;
+            let displayDate = new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            // Text Message Format for WhatsApp
+            let msg = `*SDF STORE - Wholesale Bill*\n`;
+            msg += `------------------------\n`;
+            msg += `*Customer:* ${data.customerName}\n`;
+            msg += `*Date:* ${displayDate}\n`;
+            if (data.billNo) msg += `*Bill No:* ${data.billNo}\n`;
+            msg += `------------------------\n`;
+            
+            if (data.items) {
+                data.items.forEach((item, index) => {
+                    msg += `${index + 1}. ${item.name} - ${item.qty} ${item.unit} = ₹${item.totalItemPrice}\n`;
+                });
+            }
+            msg += `------------------------\n`;
+            msg += `*Grand Total: ₹${data.grandTotal}*\n`;
+            msg += `*Paid Amount:* ₹${data.paidAmount}\n`;
+            
+            if(data.paymentStatus === 'Due') {
+                msg += `*Due Amount (Baki): ₹${data.dueAmount}*\n`;
+            } else {
+                msg += `*Status:* Full Paid ✅\n`;
+            }
+            msg += `\nThank you for your business!`;
+
+            let encodedMsg = encodeURIComponent(msg);
+            let phoneQuery = data.customerPhone ? `phone=91${data.customerPhone}&` : '';
+            
+            // Android Intent URL: এটি WebView কে বাধ্য করবে সরাসরি WhatsApp অ্যাপ খুলতে
+            let intentUrl = `intent://send?${phoneQuery}text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end;`;
+            
+            window.location.href = intentUrl;
+        }
+
         window.onload = loadData;
     </script>
 </body>
