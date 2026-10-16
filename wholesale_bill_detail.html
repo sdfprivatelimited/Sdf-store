@@ -20,7 +20,8 @@
     <div class="app-container">
         <!-- Header -->
         <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
-            <button onclick="window.history.back()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></button>
+            <!-- Back Button-এ আইডি যোগ করা হয়েছে যাতে কাস্টমারের জন্য হাইড করা যায় -->
+            <button id="backBtn" onclick="window.history.back()" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></button>
             <h1 class="text-xl font-bold tracking-wider uppercase">Bill Details</h1>
             <div class="w-6"></div>
         </div>
@@ -46,14 +47,18 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
-        const billId = new URLSearchParams(window.location.search).get('id');
+        
+        // URL থেকে ID এবং Role বের করা হচ্ছে
+        const urlParams = new URLSearchParams(window.location.search);
+        const billId = urlParams.get('id');
+        const role = urlParams.get('role'); // Check if link is opened by customer
 
         async function loadData() {
             if (!billId) return;
             const docSnap = await getDoc(doc(db, "wholesale_bills", billId));
             if (docSnap.exists()) {
                 document.getElementById('loading').style.display = 'none';
-                window.currentBillData = docSnap.data(); // Save globally for WhatsApp
+                window.currentBillData = docSnap.data(); 
                 renderData(window.currentBillData, billId);
             }
         }
@@ -108,54 +113,49 @@
                     <div class="flex justify-between text-base font-bold text-green-700"><span>Grand Total:</span><span>₹${data.grandTotal}</span></div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="grid grid-cols-2 gap-3 mt-2">
+                <!-- Action Buttons (Div ID added to hide it later if needed) -->
+                <div id="actionButtons" class="grid grid-cols-2 gap-3 mt-2">
                     <a href="thermal_print.html?id=${currentBillId}" class="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
                         <i class="fas fa-receipt text-xl mb-1 block"></i> Generate Bill
                     </a>
                     
                     <button onclick="sendWhatsApp()" class="block w-full text-center bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
-                        <i class="fab fa-whatsapp text-xl mb-1 block"></i> WhatsApp Bill
+                        <i class="fab fa-whatsapp text-xl mb-1 block"></i> Send Bill Link
                     </button>
                 </div>
             `;
+            
             document.getElementById('sheetView').classList.remove('hidden');
+
+            // যদি লিংকটি কাস্টমার খোলে (role=customer থাকে), তবে বাটনগুলো হাইড করে দাও
+            if (role === 'customer') {
+                const backBtn = document.getElementById('backBtn');
+                if(backBtn) backBtn.style.display = 'none'; // Hide Back arrow
+                
+                const actionBtns = document.getElementById('actionButtons');
+                if(actionBtns) actionBtns.style.display = 'none'; // Hide WhatsApp & Generate buttons
+            }
         }
 
-        // WhatsApp Share Function (Fixed for Android WebView)
+        // WhatsApp Share Function - NOW SENDS LINK FOR THIS SAME PAGE
         window.sendWhatsApp = function() {
             if (!window.currentBillData) return;
             const data = window.currentBillData;
-            let displayDate = new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             
-            // Text Message Format for WhatsApp
+            // Generate link for this same page but with role=customer
+            let baseUrl = window.location.href.split('?')[0]; // Gets the URL without old parameters
+            let billLink = baseUrl + "?id=" + billId + "&role=customer";
+
             let msg = `*SDF STORE - Wholesale Bill*\n`;
-            msg += `------------------------\n`;
-            msg += `*Customer:* ${data.customerName}\n`;
-            msg += `*Date:* ${displayDate}\n`;
-            if (data.billNo) msg += `*Bill No:* ${data.billNo}\n`;
-            msg += `------------------------\n`;
-            
-            if (data.items) {
-                data.items.forEach((item, index) => {
-                    msg += `${index + 1}. ${item.name} - ${item.qty} ${item.unit} = ₹${item.totalItemPrice}\n`;
-                });
-            }
-            msg += `------------------------\n`;
-            msg += `*Grand Total: ₹${data.grandTotal}*\n`;
-            msg += `*Paid Amount:* ₹${data.paidAmount}\n`;
-            
-            if(data.paymentStatus === 'Due') {
-                msg += `*Due Amount (Baki): ₹${data.dueAmount}*\n`;
-            } else {
-                msg += `*Status:* Full Paid ✅\n`;
-            }
-            msg += `\nThank you for your business!`;
+            msg += `Hello ${data.customerName},\n`;
+            msg += `Your bill of *₹${data.grandTotal}* is ready.\n\n`;
+            msg += `Click the link below to view your detailed bill:\n`;
+            msg += `${billLink}\n\n`;
+            msg += `Thank you for your business!`;
 
             let encodedMsg = encodeURIComponent(msg);
             let phoneQuery = data.customerPhone ? `phone=91${data.customerPhone}&` : '';
             
-            // Android Intent URL: এটি WebView কে বাধ্য করবে সরাসরি WhatsApp অ্যাপ খুলতে
             let intentUrl = `intent://send?${phoneQuery}text=${encodedMsg}#Intent;scheme=whatsapp;package=com.whatsapp;end;`;
             
             window.location.href = intentUrl;
