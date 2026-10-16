@@ -59,10 +59,16 @@
                         <input type="text" id="billNo" placeholder="Bill / Challan" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
                     </div>
                 </div>
-                <div>
-                    <!-- Supplier Name changed to Customer Name -->
+                
+                <div class="mb-2">
                     <label class="text-[10px] font-bold text-gray-500 uppercase">Customer Name</label>
                     <input type="text" id="customerName" placeholder="Enter Customer / Party Name" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
+                </div>
+
+                <!-- Customer WhatsApp Number Added Here -->
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fab fa-whatsapp text-green-500"></i> Customer WhatsApp No.</label>
+                    <input type="number" id="customerPhone" placeholder="10 digit mobile number" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
                 </div>
             </div>
 
@@ -186,6 +192,7 @@
             btn.disabled = true;
 
             const customerName = document.getElementById('customerName').value || "Unknown Customer";
+            const customerPhone = document.getElementById('customerPhone').value || "";
             const billNo = document.getElementById('billNo').value || "";
             const entryDate = document.getElementById('entryDate').value;
             const paymentStatus = document.getElementById('paymentStatus').value;
@@ -200,9 +207,9 @@
             }
 
             try {
-                // Save Wholesale Bill Data to Firebase (Separate collection)
                 await addDoc(collection(db, "wholesale_bills"), {
                     customerName: customerName,
+                    customerPhone: customerPhone, // Saved Phone Number Here
                     billNo: billNo,
                     date: entryDate,
                     paymentStatus: paymentStatus,
@@ -214,8 +221,6 @@
                 });
 
                 alert("✅ Wholesale Bill Saved Successfully!");
-                
-                // Go back to wholesale dashboard
                 window.location.href = "wholesale.html";
                 
             } catch (error) {
@@ -294,7 +299,7 @@
         }
 
         function lockBillInfo(lock) {
-            const fields = ['entryDate', 'billNo', 'customerName'];
+            const fields = ['entryDate', 'billNo', 'customerName', 'customerPhone'];
             fields.forEach(id => {
                 const el = document.getElementById(id);
                 el.disabled = lock;
