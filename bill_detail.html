@@ -32,7 +32,7 @@
         .sheet-table td { 
             border: 1px solid #e2e8f0; 
             padding: 8px; 
-            font-size: 12px; 
+            font-size: 11px; 
             color: #334155;
         }
         .sheet-table tr:nth-child(even) { background-color: #f8fafc; }
@@ -77,15 +77,15 @@
                 </div>
 
                 <!-- Google Sheet Style Table for Items -->
-                <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">Purchased Items</h3>
-                <div class="overflow-x-auto rounded-lg border border-gray-200 mb-5 shadow-sm">
+                <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">Purchased Items (Stock Added)</h3>
+                <div class="overflow-x-auto rounded-lg border border-gray-200 mb-4 shadow-sm">
                     <table class="sheet-table">
                         <thead>
                             <tr>
                                 <th>Item Name</th>
                                 <th class="text-center">Qty / Unit</th>
-                                <th class="text-right">Price/Unit (₹)</th>
-                                <th class="text-right">Total (₹)</th>
+                                <th class="text-right">Buy/Unit</th>
+                                <th class="text-right">Total Buy</th>
                             </tr>
                         </thead>
                         <tbody id="itemsTableBody">
@@ -94,21 +94,38 @@
                     </table>
                 </div>
 
-                <!-- Final Amount Summary -->
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
-                        <span class="text-xs font-bold text-gray-500 uppercase">Grand Total:</span>
-                        <span class="text-lg font-bold text-gray-800">₹ <span id="grandTotal">0.00</span></span>
+                <!-- 3 Colored Total Boxes -->
+                <div class="grid grid-cols-3 gap-2 mb-5">
+                    <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 text-center">
+                        <span class="block text-[9px] font-bold text-blue-600 uppercase">Total Buy</span>
+                        <span class="block text-sm font-bold text-blue-800 mt-1" id="totalBuyDisplay">₹0.00</span>
                     </div>
+                    <div class="bg-green-50 p-2 rounded-lg border border-green-200 text-center">
+                        <span class="block text-[9px] font-bold text-green-600 uppercase">Total Sell</span>
+                        <span class="block text-sm font-bold text-green-800 mt-1" id="totalSellDisplay">₹0.00</span>
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-lg border border-purple-200 text-center">
+                        <span class="block text-[9px] font-bold text-purple-600 uppercase">Total MRP</span>
+                        <span class="block text-sm font-bold text-purple-800 mt-1" id="totalMrpDisplay">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Final Payment Summary -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-4">
                     <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
-                        <span class="text-xs font-bold text-green-600 uppercase">Paid Amount:</span>
+                        <span class="text-xs font-bold text-gray-500 uppercase">Paid Amount:</span>
                         <span class="text-sm font-bold text-green-600">₹ <span id="paidAmount">0.00</span></span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-red-500 uppercase">Due Amount:</span>
+                        <span class="text-xs font-bold text-red-500 uppercase">Due Amount (Baki):</span>
                         <span class="text-sm font-bold text-red-600">₹ <span id="dueAmount">0.00</span></span>
                     </div>
                 </div>
+
+                <!-- Edit Bill Button -->
+                <button onclick="editBill()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="fas fa-edit"></i> Edit This Bill
+                </button>
 
             </div>
             
@@ -135,7 +152,6 @@
         const db = getFirestore(app);
 
         async function fetchBillDetails() {
-            // Get Bill ID from URL parameter (e.g., ?id=XYZ123)
             const urlParams = new URLSearchParams(window.location.search);
             const billId = urlParams.get('id');
 
@@ -182,32 +198,59 @@
                 badge.className = "absolute top-3 right-3 text-[10px] font-bold px-2 py-1 rounded-md border bg-red-100 text-red-700 border-red-200";
             }
 
-            // Amounts
-            document.getElementById('grandTotal').innerText = data.grandTotal.toFixed(2);
-            document.getElementById('paidAmount').innerText = (data.paidAmount || data.grandTotal).toFixed(2);
+            // Payment Amounts
+            document.getElementById('paidAmount').innerText = (data.paidAmount || data.grandTotal || 0).toFixed(2);
             document.getElementById('dueAmount').innerText = (data.dueAmount || 0).toFixed(2);
 
-            // Populate Table
+            // Populate Table & Calculate Totals
             const tbody = document.getElementById('itemsTableBody');
             tbody.innerHTML = '';
 
+            let totalBuy = 0;
+            let totalSell = 0;
+            let totalMrp = 0;
+
             if (data.items && Array.isArray(data.items)) {
                 data.items.forEach(item => {
+                    const qty = parseFloat(item.qty) || 0;
+                    const buyTotal = parseFloat(item.totalItemPrice) || 0;
+                    const sellTotal = (parseFloat(item.sellPrice || 0) * qty);
+                    const mrpTotal = (parseFloat(item.mrp || 0) * qty);
+
+                    totalBuy += buyTotal;
+                    totalSell += sellTotal;
+                    totalMrp += mrpTotal;
+
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="font-bold">${item.name}</td>
-                        <td class="text-center">${item.qty} ${item.unit}</td>
+                        <td class="font-bold">${item.name}<br><span class="text-[9px] font-normal text-gray-500">Sell: ₹${item.sellPrice || 0} | MRP: ₹${item.mrp || 0}</span></td>
+                        <td class="text-center font-bold text-blue-600">${item.qty} ${item.unit}</td>
                         <td class="text-right">₹${item.perUnitPrice}</td>
-                        <td class="text-right font-bold text-indigo-700">₹${item.totalItemPrice}</td>
+                        <td class="text-right font-bold text-indigo-700">₹${buyTotal.toFixed(2)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500">No items recorded</td></tr>`;
             }
+
+            // Update the 3 Total Boxes
+            document.getElementById('totalBuyDisplay').innerText = `₹${totalBuy.toFixed(2)}`;
+            document.getElementById('totalSellDisplay').innerText = `₹${totalSell.toFixed(2)}`;
+            document.getElementById('totalMrpDisplay').innerText = `₹${totalMrp.toFixed(2)}`;
         }
 
         window.onload = fetchBillDetails;
+
+        // Edit Bill Function (Redirects to purchase entry page with Bill ID)
+        window.editBill = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const billId = urlParams.get('id');
+            if (billId) {
+                // 'purchase_entry.html' আপনার এন্ট্রি পেজের নাম হলে এটি কাজ করবে
+                window.location.href = `purchase_entry.html?edit_id=${billId}`;
+            }
+        };
     </script>
 </body>
 </html>
