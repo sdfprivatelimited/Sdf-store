@@ -74,26 +74,41 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase" id="qtyLabel">Total Kg</label>
-                        <input type="number" id="quantity" placeholder="Quantity" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateUnitPrice()">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase" id="qtyLabel">Total Quantity (Stock)</label>
+                        <input type="number" id="quantity" placeholder="Qty" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateTotals()">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Purchase Price</label>
-                        <input type="number" id="itemTotalPrice" placeholder="₹ Total price" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateUnitPrice()">
-                        <p class="text-[10px] font-bold text-green-600 mt-1" id="unitPriceDisplay">Per unit: ₹ 0.00</p>
+                <!-- Per Unit Prices (3 Colored Boxes) -->
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                        <label class="text-[9px] font-bold text-blue-700 uppercase block mb-1">Buy / Unit <span class="text-red-500">*</span></label>
+                        <input type="number" id="purchasePriceUnit" placeholder="₹ Buy" class="w-full border border-blue-300 p-1.5 rounded focus:outline-none focus:border-blue-500 text-xs bg-white" oninput="calculateTotals()">
                     </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Selling Price / Unit</label>
-                        <input type="number" id="sellingPrice" placeholder="₹ Sell price" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
+                    <div class="bg-green-50 p-2 rounded-lg border border-green-200">
+                        <label class="text-[9px] font-bold text-green-700 uppercase block mb-1">Sell / Unit</label>
+                        <input type="number" id="sellingPriceUnit" placeholder="₹ Sell" class="w-full border border-green-300 p-1.5 rounded focus:outline-none focus:border-green-500 text-xs bg-white" oninput="calculateTotals()">
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-lg border border-purple-200">
+                        <label class="text-[9px] font-bold text-purple-700 uppercase block mb-1">MRP / Unit</label>
+                        <input type="number" id="mrpUnit" placeholder="₹ MRP" class="w-full border border-purple-300 p-1.5 rounded focus:outline-none focus:border-purple-500 text-xs bg-white" oninput="calculateTotals()">
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">MRP / Unit (Optional)</label>
-                    <input type="number" id="mrp" placeholder="₹ MRP" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
+                <!-- Total Calculated Display (3 Colored Boxes) -->
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+                        <span class="block text-[9px] font-bold text-blue-600 uppercase">Total Buy</span>
+                        <span class="block text-xs font-bold text-blue-800 mt-1" id="totalPurchaseDisplay">₹ 0.00</span>
+                    </div>
+                    <div class="bg-green-100 p-2 rounded-lg border border-green-300 text-center">
+                        <span class="block text-[9px] font-bold text-green-600 uppercase">Total Sell</span>
+                        <span class="block text-xs font-bold text-green-800 mt-1" id="totalSellDisplay">₹ 0.00</span>
+                    </div>
+                    <div class="bg-purple-100 p-2 rounded-lg border border-purple-300 text-center">
+                        <span class="block text-[9px] font-bold text-purple-600 uppercase">Total MRP</span>
+                        <span class="block text-xs font-bold text-purple-800 mt-1" id="totalMrpDisplay">₹ 0.00</span>
+                    </div>
                 </div>
 
                 <!-- Hidden field to keep track of edit mode -->
@@ -225,20 +240,20 @@
         document.getElementById('entryDate').valueAsDate = new Date();
         window.billItems = []; 
 
-        function updateQuantityLabel() { document.getElementById('qtyLabel').innerText = `Total ${document.getElementById('unitType').value}`; }
+        function updateQuantityLabel() { 
+            document.getElementById('qtyLabel').innerText = `Total Quantity (${document.getElementById('unitType').value})`; 
+        }
 
-        function calculateUnitPrice() {
-            const qty = parseFloat(document.getElementById('quantity').value);
-            const total = parseFloat(document.getElementById('itemTotalPrice').value);
-            const unit = document.getElementById('unitType').value;
-            const display = document.getElementById('unitPriceDisplay');
+        // Auto Calculate Totals based on Quantity and Per Unit Prices
+        function calculateTotals() {
+            const qty = parseFloat(document.getElementById('quantity').value) || 0;
+            const buyUnit = parseFloat(document.getElementById('purchasePriceUnit').value) || 0;
+            const sellUnit = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
+            const mrpUnit = parseFloat(document.getElementById('mrpUnit').value) || 0;
             
-            if (qty > 0 && total > 0) {
-                const perUnit = (total / qty).toFixed(2);
-                display.innerText = `Per 1 ${unit}: ₹ ${perUnit}`;
-            } else {
-                display.innerText = `Per 1 ${unit}: ₹ 0.00`;
-            }
+            document.getElementById('totalPurchaseDisplay').innerText = `₹ ${(qty * buyUnit).toFixed(2)}`;
+            document.getElementById('totalSellDisplay').innerText = `₹ ${(qty * sellUnit).toFixed(2)}`;
+            document.getElementById('totalMrpDisplay').innerText = `₹ ${(qty * mrpUnit).toFixed(2)}`;
         }
 
         function calculateDue() {
@@ -274,10 +289,11 @@
         function clearProductInputs() {
             document.getElementById('productName').value = '';
             document.getElementById('quantity').value = '';
-            document.getElementById('itemTotalPrice').value = '';
-            document.getElementById('sellingPrice').value = '';
-            document.getElementById('mrp').value = '';
-            document.getElementById('unitPriceDisplay').innerText = `Per unit: ₹ 0.00`;
+            document.getElementById('purchasePriceUnit').value = '';
+            document.getElementById('sellingPriceUnit').value = '';
+            document.getElementById('mrpUnit').value = '';
+            
+            calculateTotals(); // Reset the totals display to 0
             
             // Reset button to default Add state
             document.getElementById('editItemIndex').value = "-1";
@@ -292,17 +308,19 @@
             const name = document.getElementById('productName').value.trim();
             const unit = document.getElementById('unitType').value;
             const qty = parseFloat(document.getElementById('quantity').value);
-            const totalItemPrice = parseFloat(document.getElementById('itemTotalPrice').value);
-            const sellPrice = document.getElementById('sellingPrice').value || 0;
-            const mrp = document.getElementById('mrp').value || 0;
+            
+            const perUnitPrice = parseFloat(document.getElementById('purchasePriceUnit').value);
+            const sellPrice = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
+            const mrp = parseFloat(document.getElementById('mrpUnit').value) || 0;
+            
             const editIndex = parseInt(document.getElementById('editItemIndex').value);
 
-            if(!name || !qty || !totalItemPrice || isNaN(qty) || isNaN(totalItemPrice)) {
-                alert("Please enter Product Name, Quantity, and Total Purchase Price!");
+            if(!name || !qty || isNaN(qty) || isNaN(perUnitPrice)) {
+                alert("Please enter Product Name, Quantity, and Buy Price / Unit!");
                 return;
             }
 
-            const perUnitPrice = (totalItemPrice / qty).toFixed(2);
+            const totalItemPrice = parseFloat((qty * perUnitPrice).toFixed(2));
             
             const productObj = { name, unit, qty, totalItemPrice, perUnitPrice, sellPrice, mrp };
 
@@ -326,12 +344,12 @@
             document.getElementById('productName').value = item.name;
             document.getElementById('unitType').value = item.unit;
             document.getElementById('quantity').value = item.qty;
-            document.getElementById('itemTotalPrice').value = item.totalItemPrice;
-            document.getElementById('sellingPrice').value = item.sellPrice || '';
-            document.getElementById('mrp').value = item.mrp || '';
+            document.getElementById('purchasePriceUnit').value = item.perUnitPrice;
+            document.getElementById('sellingPriceUnit').value = item.sellPrice || '';
+            document.getElementById('mrpUnit').value = item.mrp || '';
             
             updateQuantityLabel();
-            calculateUnitPrice();
+            calculateTotals();
             
             // Setup Edit Mode
             document.getElementById('editItemIndex').value = index;
