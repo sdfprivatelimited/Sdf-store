@@ -18,20 +18,6 @@
             position: relative; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1); 
         }
-        .suggestions-box {
-            display: none;
-            position: absolute;
-            width: 100%;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 10;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
-        .suggestion-item:hover { background-color: #eff6ff; }
     </style>
 </head>
 <body>
@@ -71,13 +57,9 @@
             <div id="productEntrySection">
                 <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">2. Add Product</h3>
                 
-                <div class="relative mb-3">
-                    <div class="flex justify-between items-end mb-1">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Product Name</label>
-                        <button type="button" onclick="addNewProductMode()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded"><i class="fas fa-plus"></i> New Product</button>
-                    </div>
-                    <input type="text" id="productName" placeholder="Search product..." class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" autocomplete="off" oninput="showSuggestions(this.value)">
-                    <div id="suggestionBox" class="suggestions-box mt-1"></div>
+                <div class="mb-3">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Product Name</label>
+                    <input type="text" id="productName" placeholder="Enter product name..." class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" autocomplete="off">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mb-3">
@@ -97,21 +79,28 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Price (Puro Dam)</label>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Purchase Price</label>
                         <input type="number" id="itemTotalPrice" placeholder="₹ Total price" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateUnitPrice()">
-                        <!-- Automatic Per Unit Calculation Display -->
                         <p class="text-[10px] font-bold text-green-600 mt-1" id="unitPriceDisplay">Per unit: ₹ 0.00</p>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Selling Price (Optional)</label>
-                        <input type="number" id="sellingPrice" placeholder="₹ Per unit" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Selling Price / Unit</label>
+                        <input type="number" id="sellingPrice" placeholder="₹ Sell price" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
                     </div>
                 </div>
 
-                <button onclick="addProductToBill()" type="button" class="w-full bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold py-3 rounded-xl shadow-sm transform transition hover:scale-105 active:scale-95 text-sm flex justify-center items-center gap-2">
-                    <i class="fas fa-cart-plus"></i> Add Product
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">MRP / Unit (Optional)</label>
+                    <input type="number" id="mrp" placeholder="₹ MRP" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
+                </div>
+
+                <!-- Hidden field to keep track of edit mode -->
+                <input type="hidden" id="editItemIndex" value="-1">
+
+                <button onclick="addProductToBill()" id="addProductBtn" type="button" class="w-full bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold py-3 rounded-xl shadow-sm transform transition hover:scale-105 active:scale-95 text-sm flex justify-center items-center gap-2">
+                    <i class="fas fa-cart-plus" id="addBtnIcon"></i> <span id="addBtnText">Add Product</span>
                 </button>
             </div>
 
@@ -124,11 +113,11 @@
                     <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded" id="itemCountBadge">0 Items</span>
                 </div>
                 
-                <div id="productList" class="flex flex-col gap-2 mb-4 max-h-48 overflow-y-auto pr-1"></div>
+                <div id="productList" class="flex flex-col gap-3 mb-4 max-h-[350px] overflow-y-auto pr-1"></div>
 
                 <!-- Grand Total -->
                 <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-4 flex justify-between items-center">
-                    <span class="text-sm font-bold text-green-800">Grand Total:</span>
+                    <span class="text-sm font-bold text-green-800">Grand Total (Purchase):</span>
                     <span class="text-2xl font-bold text-green-700">₹ <span id="grandTotal">0.00</span></span>
                 </div>
 
@@ -140,9 +129,8 @@
                         <option value="Due">Due (Baki Ache)</option>
                     </select>
 
-                    <!-- Due Amount Box (Hidden by default) -->
                     <div id="dueSection" class="hidden mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                        <label class="text-[10px] font-bold text-red-600 uppercase">Amount Paid (Koto Taka Diyeche?)</label>
+                        <label class="text-[10px] font-bold text-red-600 uppercase">Amount Paid</label>
                         <input type="number" id="paidAmount" placeholder="Enter amount paid" class="w-full border border-red-300 p-2 rounded-lg text-sm outline-none mt-1" oninput="calculateDue()">
                         <div class="mt-2 text-right">
                             <span class="text-xs font-bold text-gray-600">Total Baki: </span>
@@ -166,7 +154,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        // Your Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
             authDomain: "sdf-store-f39bd.firebaseapp.com",
@@ -180,7 +167,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Make saveFullBill available globally so HTML button can call it
         window.saveFullBill = async function() {
             if(window.billItems.length === 0) return;
             
@@ -203,7 +189,6 @@
             }
 
             try {
-                // Save Bill Data to Firebase
                 await addDoc(collection(db, "purchases"), {
                     supplierName: supplierName,
                     billNo: billNo,
@@ -216,7 +201,7 @@
                     timestamp: serverTimestamp()
                 });
 
-                alert("✅ Firebase-e Data Save Hoyeche!");
+                alert("✅ Bill Successfully Saved!");
                 
                 // Reset UI after saving
                 window.billItems = [];
@@ -227,7 +212,7 @@
                 
             } catch (error) {
                 console.error("Error saving bill:", error);
-                alert("❌ Save korte problem hoyeche!");
+                alert("❌ Problem saving bill!");
             }
 
             btn.innerHTML = '<i class="fas fa-save"></i> Save Complete Bill';
@@ -240,34 +225,8 @@
         document.getElementById('entryDate').valueAsDate = new Date();
         window.billItems = []; 
 
-        const existingProducts = ["Almond (Kath Badam)", "Cashew Nut (Kaju)", "Dates (Khejur)", "Raisin (Kishmish)", "Pistachio (Pesta)"];
-        const productNameInput = document.getElementById('productName');
-        const suggestionBox = document.getElementById('suggestionBox');
-
-        function showSuggestions(query) {
-            suggestionBox.innerHTML = '';
-            if (query.length === 0) { suggestionBox.style.display = 'none'; return; }
-            
-            const filtered = existingProducts.filter(item => item.toLowerCase().includes(query.toLowerCase()));
-            if (filtered.length > 0) {
-                filtered.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item text-sm font-medium text-gray-700';
-                    div.innerText = item;
-                    div.onclick = () => { productNameInput.value = item; suggestionBox.style.display = 'none'; };
-                    suggestionBox.appendChild(div);
-                });
-                suggestionBox.style.display = 'block';
-            } else {
-                suggestionBox.style.display = 'none';
-            }
-        }
-
-        document.addEventListener('click', (e) => { if (e.target !== productNameInput) suggestionBox.style.display = 'none'; });
-        function addNewProductMode() { productNameInput.value = ''; productNameInput.focus(); suggestionBox.style.display = 'none'; }
         function updateQuantityLabel() { document.getElementById('qtyLabel').innerText = `Total ${document.getElementById('unitType').value}`; }
 
-        // Automatically Calculate Per Unit Price
         function calculateUnitPrice() {
             const qty = parseFloat(document.getElementById('quantity').value);
             const total = parseFloat(document.getElementById('itemTotalPrice').value);
@@ -282,7 +241,6 @@
             }
         }
 
-        // Calculate Due Amount
         function calculateDue() {
             const grandTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
             const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
@@ -313,29 +271,91 @@
             });
         }
 
+        function clearProductInputs() {
+            document.getElementById('productName').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('itemTotalPrice').value = '';
+            document.getElementById('sellingPrice').value = '';
+            document.getElementById('mrp').value = '';
+            document.getElementById('unitPriceDisplay').innerText = `Per unit: ₹ 0.00`;
+            
+            // Reset button to default Add state
+            document.getElementById('editItemIndex').value = "-1";
+            document.getElementById('addBtnText').innerText = "Add Product";
+            document.getElementById('addBtnIcon').className = "fas fa-cart-plus";
+            document.getElementById('addProductBtn').classList.replace("bg-blue-100", "bg-indigo-100");
+            document.getElementById('addProductBtn').classList.replace("text-blue-700", "text-indigo-700");
+            document.getElementById('addProductBtn').classList.replace("border-blue-300", "border-indigo-300");
+        }
+
         function addProductToBill() {
-            const name = productNameInput.value.trim();
+            const name = document.getElementById('productName').value.trim();
             const unit = document.getElementById('unitType').value;
             const qty = parseFloat(document.getElementById('quantity').value);
             const totalItemPrice = parseFloat(document.getElementById('itemTotalPrice').value);
-            const sellPrice = document.getElementById('sellingPrice').value;
+            const sellPrice = document.getElementById('sellingPrice').value || 0;
+            const mrp = document.getElementById('mrp').value || 0;
+            const editIndex = parseInt(document.getElementById('editItemIndex').value);
 
-            if(!name || !qty || !totalItemPrice) {
-                alert("Please enter Product Name, Quantity, and Total Price!");
+            if(!name || !qty || !totalItemPrice || isNaN(qty) || isNaN(totalItemPrice)) {
+                alert("Please enter Product Name, Quantity, and Total Purchase Price!");
                 return;
             }
 
             const perUnitPrice = (totalItemPrice / qty).toFixed(2);
-            window.billItems.push({ name, unit, qty, totalItemPrice, perUnitPrice, sellPrice });
+            
+            const productObj = { name, unit, qty, totalItemPrice, perUnitPrice, sellPrice, mrp };
+
+            if(editIndex === -1) {
+                // Add new product
+                window.billItems.push(productObj);
+            } else {
+                // Update existing product
+                window.billItems[editIndex] = productObj;
+            }
 
             lockBillInfo(true);
-            productNameInput.value = '';
-            document.getElementById('quantity').value = '';
-            document.getElementById('itemTotalPrice').value = '';
-            document.getElementById('sellingPrice').value = '';
-            document.getElementById('unitPriceDisplay').innerText = `Per unit: ₹ 0.00`;
-
+            clearProductInputs();
             window.renderCart();
+        }
+
+        window.editProduct = function(index) {
+            const item = window.billItems[index];
+            
+            // Populate fields with existing data
+            document.getElementById('productName').value = item.name;
+            document.getElementById('unitType').value = item.unit;
+            document.getElementById('quantity').value = item.qty;
+            document.getElementById('itemTotalPrice').value = item.totalItemPrice;
+            document.getElementById('sellingPrice').value = item.sellPrice || '';
+            document.getElementById('mrp').value = item.mrp || '';
+            
+            updateQuantityLabel();
+            calculateUnitPrice();
+            
+            // Setup Edit Mode
+            document.getElementById('editItemIndex').value = index;
+            document.getElementById('addBtnText').innerText = "Update Product";
+            document.getElementById('addBtnIcon').className = "fas fa-edit";
+            document.getElementById('addProductBtn').classList.replace("bg-indigo-100", "bg-blue-100");
+            document.getElementById('addProductBtn').classList.replace("text-indigo-700", "text-blue-700");
+            document.getElementById('addProductBtn').classList.replace("border-indigo-300", "border-blue-300");
+            
+            // Scroll to entry section
+            document.getElementById('productEntrySection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.deleteProduct = function(index) {
+            if(confirm("Are you sure you want to remove this product?")) {
+                window.billItems.splice(index, 1);
+                
+                // If editing the item that was just deleted, clear inputs
+                if(parseInt(document.getElementById('editItemIndex').value) === index) {
+                    clearProductInputs();
+                }
+                
+                window.renderCart();
+            }
         }
 
         window.renderCart = function() {
@@ -353,17 +373,55 @@
             let grandTotal = 0;
 
             window.billItems.forEach((item, index) => {
-                grandTotal += item.totalItemPrice;
+                grandTotal += parseFloat(item.totalItemPrice);
+                
+                // Calculate Totals based on quantity
+                const sellTotal = (parseFloat(item.sellPrice || 0) * item.qty).toFixed(2);
+                const mrpTotal = (parseFloat(item.mrp || 0) * item.qty).toFixed(2);
+
                 const div = document.createElement('div');
-                div.className = "bg-white p-3 rounded-lg border border-gray-200 flex justify-between items-center shadow-sm";
+                div.className = "bg-white p-3 rounded-xl border border-gray-200 shadow-sm";
+                
                 div.innerHTML = `
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">${item.name}</h4>
-                        <p class="text-[10px] text-gray-500">${item.qty} ${item.unit} | Unit: ₹${item.perUnitPrice} | Total: ₹${item.totalItemPrice}</p>
+                    <!-- Header of Item -->
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-800">${item.name}</h4>
+                            <p class="text-[11px] text-gray-500 font-medium mt-0.5">Quantity: <span class="text-gray-800 font-bold">${item.qty} ${item.unit}</span></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editProduct(${index})" class="text-blue-600 bg-blue-50 p-2 rounded-md w-7 h-7 flex items-center justify-center hover:bg-blue-100 transition">
+                                <i class="fas fa-edit text-[10px]"></i>
+                            </button>
+                            <button onclick="deleteProduct(${index})" class="text-red-500 bg-red-50 p-2 rounded-md w-7 h-7 flex items-center justify-center hover:bg-red-100 transition">
+                                <i class="fas fa-trash text-[10px]"></i>
+                            </button>
+                        </div>
                     </div>
-                    <button onclick="deleteProduct(${index})" class="text-red-500 bg-red-50 p-2 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-100 transition">
-                        <i class="fas fa-trash text-xs"></i>
-                    </button>
+
+                    <!-- 3 Colored Price Boxes -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- Purchase Box -->
+                        <div class="bg-blue-50 border border-blue-200 rounded p-1.5 text-center flex flex-col justify-between">
+                            <span class="block text-[9px] font-bold text-blue-500 uppercase">Purchase</span>
+                            <span class="block text-xs font-bold text-blue-700 mt-0.5">₹${item.perUnitPrice} <span class="text-[8px] font-normal">/unit</span></span>
+                            <span class="block text-[10px] text-blue-800 font-semibold mt-1 pt-1 border-t border-blue-200">Total: ₹${parseFloat(item.totalItemPrice).toFixed(2)}</span>
+                        </div>
+                        
+                        <!-- Sell Box -->
+                        <div class="bg-green-50 border border-green-200 rounded p-1.5 text-center flex flex-col justify-between">
+                            <span class="block text-[9px] font-bold text-green-500 uppercase">Sell</span>
+                            <span class="block text-xs font-bold text-green-700 mt-0.5">₹${item.sellPrice || 0} <span class="text-[8px] font-normal">/unit</span></span>
+                            <span class="block text-[10px] text-green-800 font-semibold mt-1 pt-1 border-t border-green-200">Total: ₹${sellTotal}</span>
+                        </div>
+                        
+                        <!-- MRP Box -->
+                        <div class="bg-purple-50 border border-purple-200 rounded p-1.5 text-center flex flex-col justify-between">
+                            <span class="block text-[9px] font-bold text-purple-500 uppercase">MRP</span>
+                            <span class="block text-xs font-bold text-purple-700 mt-0.5">₹${item.mrp || 0} <span class="text-[8px] font-normal">/unit</span></span>
+                            <span class="block text-[10px] text-purple-800 font-semibold mt-1 pt-1 border-t border-purple-200">Total: ₹${mrpTotal}</span>
+                        </div>
+                    </div>
                 `;
                 listContainer.appendChild(div);
             });
@@ -371,11 +429,6 @@
             document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
             document.getElementById('itemCountBadge').innerText = `${window.billItems.length} Items`;
             calculateDue(); // Update due if it was open
-        }
-
-        window.deleteProduct = function(index) {
-            window.billItems.splice(index, 1);
-            window.renderCart();
         }
     </script>
 </body>
