@@ -26,28 +26,23 @@
         <!-- Header -->
         <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
             <a href="store.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
-            <h1 class="text-xl font-bold tracking-wider">PURCHASE ENTRY</h1>
+            <h1 class="text-xl font-bold tracking-wider">ADD PRODUCT</h1>
             <div class="w-6"></div>
         </div>
 
         <div class="p-4 flex-1">
             
-            <!-- STEP 1: Bill Information -->
-            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-4" id="billInfoSection">
-                <h3 class="text-xs font-bold text-indigo-800 uppercase mb-2">1. Bill Information</h3>
+            <!-- STEP 1: Basic Information -->
+            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-4">
                 <div class="grid grid-cols-2 gap-3 mb-2">
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Date</label>
-                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg text-sm bg-white outline-none">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Entry Date</label>
+                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg text-sm bg-white outline-none" onchange="loadProductsByDate()">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Bill No (Optional)</label>
-                        <input type="text" id="billNo" placeholder="Bill / Challan" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Supplier (Optional)</label>
+                        <input type="text" id="supplierName" placeholder="Supplier Name" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
                     </div>
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Supplier Name</label>
-                    <input type="text" id="supplierName" placeholder="Enter Supplier Name" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
                 </div>
             </div>
 
@@ -55,8 +50,6 @@
 
             <!-- STEP 2: Product Entry -->
             <div id="productEntrySection">
-                <h3 class="text-xs font-bold text-gray-600 uppercase mb-2">2. Add Product</h3>
-                
                 <div class="mb-3">
                     <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Product Name</label>
                     <input type="text" id="productName" placeholder="Enter product name..." class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" autocomplete="off">
@@ -65,7 +58,7 @@
                 <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 uppercase">Unit Type</label>
-                        <select id="unitType" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" onchange="updateQuantityLabel()">
+                        <select id="unitType" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
                             <option value="Kg">Kg</option>
                             <option value="Gram">Gram</option>
                             <option value="Pack">Pack</option>
@@ -74,7 +67,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase" id="qtyLabel">Total Quantity (Stock)</label>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Quantity</label>
                         <input type="number" id="quantity" placeholder="Qty" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateTotals()">
                     </div>
                 </div>
@@ -111,53 +104,23 @@
                     </div>
                 </div>
 
-                <!-- Hidden field to keep track of edit mode -->
-                <input type="hidden" id="editItemIndex" value="-1">
-
-                <button onclick="addProductToBill()" id="addProductBtn" type="button" class="w-full bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold py-3 rounded-xl shadow-sm transform transition hover:scale-105 active:scale-95 text-sm flex justify-center items-center gap-2">
-                    <i class="fas fa-cart-plus" id="addBtnIcon"></i> <span id="addBtnText">Add Product</span>
+                <!-- DIRECT SAVE BUTTON -->
+                <button onclick="saveSingleProduct()" id="saveProductBtn" type="button" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="fas fa-plus-circle"></i> Save Product to Database
                 </button>
             </div>
 
-            <hr class="border-gray-200 my-5">
+            <hr class="border-gray-200 my-6">
 
-            <!-- STEP 3: Bill Summary & Payment -->
-            <div id="billSummarySection" class="hidden">
-                <div class="flex justify-between items-end mb-2">
-                    <h3 class="text-xs font-bold text-green-700 uppercase">3. Final Bill Summary</h3>
-                    <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded" id="itemCountBadge">0 Items</span>
+            <!-- Added Products List for the Selected Date -->
+            <div>
+                <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 flex justify-between">
+                    <span>Products Added on <span id="displayDate" class="text-indigo-600">Today</span></span>
+                </h3>
+                <div id="datewiseProductList" class="flex flex-col gap-3">
+                    <!-- Data will load here dynamically -->
+                    <p class="text-xs text-gray-400 text-center italic">No products added for this date yet.</p>
                 </div>
-                
-                <div id="productList" class="flex flex-col gap-3 mb-4 max-h-[350px] overflow-y-auto pr-1"></div>
-
-                <!-- Grand Total -->
-                <div class="bg-green-50 p-4 rounded-xl border border-green-200 mb-4 flex justify-between items-center">
-                    <span class="text-sm font-bold text-green-800">Grand Total (Purchase):</span>
-                    <span class="text-2xl font-bold text-green-700">₹ <span id="grandTotal">0.00</span></span>
-                </div>
-
-                <!-- Payment Status Section -->
-                <div class="bg-white p-3 rounded-xl border border-gray-200 mb-4 shadow-sm">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Payment Status</label>
-                    <select id="paymentStatus" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none mt-1" onchange="togglePaymentDue()">
-                        <option value="Paid">Full Paid</option>
-                        <option value="Due">Due (Baki Ache)</option>
-                    </select>
-
-                    <div id="dueSection" class="hidden mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                        <label class="text-[10px] font-bold text-red-600 uppercase">Amount Paid</label>
-                        <input type="number" id="paidAmount" placeholder="Enter amount paid" class="w-full border border-red-300 p-2 rounded-lg text-sm outline-none mt-1" oninput="calculateDue()">
-                        <div class="mt-2 text-right">
-                            <span class="text-xs font-bold text-gray-600">Total Baki: </span>
-                            <span class="text-lg font-bold text-red-600">₹ <span id="dueAmount">0.00</span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Save Full Bill Button -->
-                <button onclick="saveFullBill()" id="saveBtn" type="button" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
-                    <i class="fas fa-save"></i> Save Complete Bill
-                </button>
             </div>
             
             <div class="h-10"></div>
@@ -167,7 +130,7 @@
     <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
@@ -175,76 +138,126 @@
             projectId: "sdf-store-f39bd",
             storageBucket: "sdf-store-f39bd.firebasestorage.app",
             messagingSenderId: "988561141451",
-            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
-            measurementId: "G-WH88QMN0Z5"
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        window.saveFullBill = async function() {
-            if(window.billItems.length === 0) return;
+        // Save Single Product Directly
+        window.saveSingleProduct = async function() {
+            const date = document.getElementById('entryDate').value;
+            const supplier = document.getElementById('supplierName').value || "N/A";
+            const name = document.getElementById('productName').value.trim();
+            const unit = document.getElementById('unitType').value;
+            const qty = parseFloat(document.getElementById('quantity').value);
             
-            const btn = document.getElementById('saveBtn');
+            const buyUnit = parseFloat(document.getElementById('purchasePriceUnit').value);
+            const sellUnit = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
+            const mrpUnit = parseFloat(document.getElementById('mrpUnit').value) || 0;
+
+            if(!name || !qty || isNaN(qty) || isNaN(buyUnit)) {
+                alert("Please enter Product Name, Quantity, and Buy Price!");
+                return;
+            }
+
+            const totalBuy = parseFloat((qty * buyUnit).toFixed(2));
+            const btn = document.getElementById('saveProductBtn');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             btn.disabled = true;
 
-            const supplierName = document.getElementById('supplierName').value || "Unknown Supplier";
-            const billNo = document.getElementById('billNo').value || "";
-            const entryDate = document.getElementById('entryDate').value;
-            const paymentStatus = document.getElementById('paymentStatus').value;
-            const grandTotal = parseFloat(document.getElementById('grandTotal').innerText);
-            
-            let paidAmount = grandTotal;
-            let dueAmount = 0;
-
-            if (paymentStatus === 'Due') {
-                paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
-                dueAmount = grandTotal - paidAmount;
-            }
-
             try {
-                await addDoc(collection(db, "purchases"), {
-                    supplierName: supplierName,
-                    billNo: billNo,
-                    date: entryDate,
-                    paymentStatus: paymentStatus,
-                    grandTotal: grandTotal,
-                    paidAmount: paidAmount,
-                    dueAmount: dueAmount,
-                    items: window.billItems,
+                // Save directly to 'inventory_purchases' collection
+                await addDoc(collection(db, "inventory_purchases"), {
+                    date: date,
+                    supplierName: supplier,
+                    productName: name,
+                    unit: unit,
+                    quantity: qty,
+                    buyPricePerUnit: buyUnit,
+                    sellPricePerUnit: sellUnit,
+                    mrpPerUnit: mrpUnit,
+                    totalPurchasePrice: totalBuy,
                     timestamp: serverTimestamp()
                 });
 
-                alert("✅ Bill Successfully Saved!");
-                
-                // Reset UI after saving
-                window.billItems = [];
-                window.renderCart();
-                document.getElementById('supplierName').value = '';
-                document.getElementById('billNo').value = '';
-                lockBillInfo(false);
-                
+                alert("✅ Product Added Successfully!");
+                clearProductInputs();
+                loadProductsByDate(); // Refresh the list below
+
             } catch (error) {
-                console.error("Error saving bill:", error);
-                alert("❌ Problem saving bill!");
+                console.error("Error saving product:", error);
+                alert("❌ Problem saving product!");
             }
 
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Complete Bill';
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Save Product to Database';
             btn.disabled = false;
+        };
+
+        // Fetch products for selected date
+        window.loadProductsByDate = async function() {
+            const selectedDate = document.getElementById('entryDate').value;
+            document.getElementById('displayDate').innerText = selectedDate;
+            const listContainer = document.getElementById('datewiseProductList');
+            
+            listContainer.innerHTML = '<p class="text-xs text-indigo-400 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
+
+            try {
+                const q = query(collection(db, "inventory_purchases"), where("date", "==", selectedDate));
+                const querySnapshot = await getDocs(q);
+                
+                listContainer.innerHTML = '';
+                
+                if(querySnapshot.empty) {
+                    listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center italic">No products added for this date yet.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const item = doc.data();
+                    const div = document.createElement('div');
+                    div.className = "bg-white p-3 rounded-xl border border-gray-200 shadow-sm";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">${item.productName}</h4>
+                                <p class="text-[10px] text-gray-500 font-medium mt-0.5">Supplier: ${item.supplierName}</p>
+                            </div>
+                            <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded">Qty: ${item.quantity} ${item.unit}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-100 text-center">
+                            <div>
+                                <span class="block text-[9px] text-blue-500 uppercase">Buy/Unit</span>
+                                <span class="block text-xs font-bold text-gray-800">₹${item.buyPricePerUnit}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[9px] text-green-500 uppercase">Sell/Unit</span>
+                                <span class="block text-xs font-bold text-gray-800">₹${item.sellPricePerUnit}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[9px] text-purple-500 uppercase">Total Buy</span>
+                                <span class="block text-xs font-bold text-blue-800">₹${item.totalPurchasePrice}</span>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error("Error fetching date products:", error);
+                listContainer.innerHTML = '<p class="text-xs text-red-400 text-center">Failed to load data.</p>';
+            }
+        };
+
+        // Initialize date and load data on start
+        window.onload = function() {
+            document.getElementById('entryDate').valueAsDate = new Date();
+            loadProductsByDate();
         };
     </script>
 
-    <!-- Normal UI Scripts -->
+    <!-- UI Scripts -->
     <script>
-        document.getElementById('entryDate').valueAsDate = new Date();
-        window.billItems = []; 
-
-        function updateQuantityLabel() { 
-            document.getElementById('qtyLabel').innerText = `Total Quantity (${document.getElementById('unitType').value})`; 
-        }
-
-        // Auto Calculate Totals based on Quantity and Per Unit Prices
         function calculateTotals() {
             const qty = parseFloat(document.getElementById('quantity').value) || 0;
             const buyUnit = parseFloat(document.getElementById('purchasePriceUnit').value) || 0;
@@ -256,197 +269,13 @@
             document.getElementById('totalMrpDisplay').innerText = `₹ ${(qty * mrpUnit).toFixed(2)}`;
         }
 
-        function calculateDue() {
-            const grandTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
-            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-            let due = grandTotal - paid;
-            if (due < 0) due = 0;
-            document.getElementById('dueAmount').innerText = due.toFixed(2);
-        }
-
-        function togglePaymentDue() {
-            const status = document.getElementById('paymentStatus').value;
-            const dueSection = document.getElementById('dueSection');
-            if(status === 'Due') {
-                dueSection.classList.remove('hidden');
-                document.getElementById('paidAmount').value = '';
-                calculateDue();
-            } else {
-                dueSection.classList.add('hidden');
-            }
-        }
-
-        function lockBillInfo(lock) {
-            const fields = ['entryDate', 'billNo', 'supplierName'];
-            fields.forEach(id => {
-                const el = document.getElementById(id);
-                el.disabled = lock;
-                if(lock) el.classList.add('bg-gray-100', 'text-gray-500');
-                else el.classList.remove('bg-gray-100', 'text-gray-500');
-            });
-        }
-
         function clearProductInputs() {
             document.getElementById('productName').value = '';
             document.getElementById('quantity').value = '';
             document.getElementById('purchasePriceUnit').value = '';
             document.getElementById('sellingPriceUnit').value = '';
             document.getElementById('mrpUnit').value = '';
-            
-            calculateTotals(); // Reset the totals display to 0
-            
-            // Reset button to default Add state
-            document.getElementById('editItemIndex').value = "-1";
-            document.getElementById('addBtnText').innerText = "Add Product";
-            document.getElementById('addBtnIcon').className = "fas fa-cart-plus";
-            document.getElementById('addProductBtn').classList.replace("bg-blue-100", "bg-indigo-100");
-            document.getElementById('addProductBtn').classList.replace("text-blue-700", "text-indigo-700");
-            document.getElementById('addProductBtn').classList.replace("border-blue-300", "border-indigo-300");
-        }
-
-        function addProductToBill() {
-            const name = document.getElementById('productName').value.trim();
-            const unit = document.getElementById('unitType').value;
-            const qty = parseFloat(document.getElementById('quantity').value);
-            
-            const perUnitPrice = parseFloat(document.getElementById('purchasePriceUnit').value);
-            const sellPrice = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
-            const mrp = parseFloat(document.getElementById('mrpUnit').value) || 0;
-            
-            const editIndex = parseInt(document.getElementById('editItemIndex').value);
-
-            if(!name || !qty || isNaN(qty) || isNaN(perUnitPrice)) {
-                alert("Please enter Product Name, Quantity, and Buy Price / Unit!");
-                return;
-            }
-
-            const totalItemPrice = parseFloat((qty * perUnitPrice).toFixed(2));
-            
-            const productObj = { name, unit, qty, totalItemPrice, perUnitPrice, sellPrice, mrp };
-
-            if(editIndex === -1) {
-                // Add new product
-                window.billItems.push(productObj);
-            } else {
-                // Update existing product
-                window.billItems[editIndex] = productObj;
-            }
-
-            lockBillInfo(true);
-            clearProductInputs();
-            window.renderCart();
-        }
-
-        window.editProduct = function(index) {
-            const item = window.billItems[index];
-            
-            // Populate fields with existing data
-            document.getElementById('productName').value = item.name;
-            document.getElementById('unitType').value = item.unit;
-            document.getElementById('quantity').value = item.qty;
-            document.getElementById('purchasePriceUnit').value = item.perUnitPrice;
-            document.getElementById('sellingPriceUnit').value = item.sellPrice || '';
-            document.getElementById('mrpUnit').value = item.mrp || '';
-            
-            updateQuantityLabel();
-            calculateTotals();
-            
-            // Setup Edit Mode
-            document.getElementById('editItemIndex').value = index;
-            document.getElementById('addBtnText').innerText = "Update Product";
-            document.getElementById('addBtnIcon').className = "fas fa-edit";
-            document.getElementById('addProductBtn').classList.replace("bg-indigo-100", "bg-blue-100");
-            document.getElementById('addProductBtn').classList.replace("text-indigo-700", "text-blue-700");
-            document.getElementById('addProductBtn').classList.replace("border-indigo-300", "border-blue-300");
-            
-            // Scroll to entry section
-            document.getElementById('productEntrySection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        window.deleteProduct = function(index) {
-            if(confirm("Are you sure you want to remove this product?")) {
-                window.billItems.splice(index, 1);
-                
-                // If editing the item that was just deleted, clear inputs
-                if(parseInt(document.getElementById('editItemIndex').value) === index) {
-                    clearProductInputs();
-                }
-                
-                window.renderCart();
-            }
-        }
-
-        window.renderCart = function() {
-            const listContainer = document.getElementById('productList');
-            const summarySection = document.getElementById('billSummarySection');
-            listContainer.innerHTML = '';
-
-            if (window.billItems.length === 0) {
-                summarySection.classList.add('hidden');
-                lockBillInfo(false);
-                return;
-            }
-
-            summarySection.classList.remove('hidden');
-            let grandTotal = 0;
-
-            window.billItems.forEach((item, index) => {
-                grandTotal += parseFloat(item.totalItemPrice);
-                
-                // Calculate Totals based on quantity
-                const sellTotal = (parseFloat(item.sellPrice || 0) * item.qty).toFixed(2);
-                const mrpTotal = (parseFloat(item.mrp || 0) * item.qty).toFixed(2);
-
-                const div = document.createElement('div');
-                div.className = "bg-white p-3 rounded-xl border border-gray-200 shadow-sm";
-                
-                div.innerHTML = `
-                    <!-- Header of Item -->
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-800">${item.name}</h4>
-                            <p class="text-[11px] text-gray-500 font-medium mt-0.5">Quantity: <span class="text-gray-800 font-bold">${item.qty} ${item.unit}</span></p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="editProduct(${index})" class="text-blue-600 bg-blue-50 p-2 rounded-md w-7 h-7 flex items-center justify-center hover:bg-blue-100 transition">
-                                <i class="fas fa-edit text-[10px]"></i>
-                            </button>
-                            <button onclick="deleteProduct(${index})" class="text-red-500 bg-red-50 p-2 rounded-md w-7 h-7 flex items-center justify-center hover:bg-red-100 transition">
-                                <i class="fas fa-trash text-[10px]"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 3 Colored Price Boxes -->
-                    <div class="grid grid-cols-3 gap-2">
-                        <!-- Purchase Box -->
-                        <div class="bg-blue-50 border border-blue-200 rounded p-1.5 text-center flex flex-col justify-between">
-                            <span class="block text-[9px] font-bold text-blue-500 uppercase">Purchase</span>
-                            <span class="block text-xs font-bold text-blue-700 mt-0.5">₹${item.perUnitPrice} <span class="text-[8px] font-normal">/unit</span></span>
-                            <span class="block text-[10px] text-blue-800 font-semibold mt-1 pt-1 border-t border-blue-200">Total: ₹${parseFloat(item.totalItemPrice).toFixed(2)}</span>
-                        </div>
-                        
-                        <!-- Sell Box -->
-                        <div class="bg-green-50 border border-green-200 rounded p-1.5 text-center flex flex-col justify-between">
-                            <span class="block text-[9px] font-bold text-green-500 uppercase">Sell</span>
-                            <span class="block text-xs font-bold text-green-700 mt-0.5">₹${item.sellPrice || 0} <span class="text-[8px] font-normal">/unit</span></span>
-                            <span class="block text-[10px] text-green-800 font-semibold mt-1 pt-1 border-t border-green-200">Total: ₹${sellTotal}</span>
-                        </div>
-                        
-                        <!-- MRP Box -->
-                        <div class="bg-purple-50 border border-purple-200 rounded p-1.5 text-center flex flex-col justify-between">
-                            <span class="block text-[9px] font-bold text-purple-500 uppercase">MRP</span>
-                            <span class="block text-xs font-bold text-purple-700 mt-0.5">₹${item.mrp || 0} <span class="text-[8px] font-normal">/unit</span></span>
-                            <span class="block text-[10px] text-purple-800 font-semibold mt-1 pt-1 border-t border-purple-200">Total: ₹${mrpTotal}</span>
-                        </div>
-                    </div>
-                `;
-                listContainer.appendChild(div);
-            });
-
-            document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
-            document.getElementById('itemCountBadge').innerText = `${window.billItems.length} Items`;
-            calculateDue(); // Update due if it was open
+            calculateTotals(); 
         }
     </script>
 </body>
