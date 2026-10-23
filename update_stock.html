@@ -26,6 +26,9 @@
         .popup-animate {
             animation: popIn 0.2s ease-out forwards;
         }
+        /* Custom Scrollbar for suggestion box */
+        .suggestion-scroll::-webkit-scrollbar { display: block; width: 4px; }
+        .suggestion-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -37,7 +40,7 @@
                 <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
                 <h1 class="text-lg font-bold flex items-center gap-2">
                     Update Stock
-                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Quick Edit</span>
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Search & Edit</span>
                 </h1>
             </div>
             <!-- Total count badge -->
@@ -48,13 +51,21 @@
 
         <div class="p-4 flex-1 content-area">
             
-            <!-- Search / Filter -->
-            <div class="relative mb-5">
-                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="Search by product name..." class="w-full bg-white border border-gray-200 p-3 pl-9 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm shadow-sm transition" onkeyup="filterProducts()">
+            <!-- Smart Search / Auto-suggest -->
+            <div class="relative mb-6 z-20">
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400"></i>
+                <input type="text" id="searchInput" placeholder="Search product to update stock..." class="w-full bg-white border-2 border-indigo-100 p-3.5 pl-10 rounded-xl focus:outline-none focus:border-indigo-500 shadow-sm transition font-semibold text-sm text-gray-700" oninput="showSuggestions(this.value)" onfocus="showSuggestions(this.value)">
+                
+                <!-- Suggestions Dropdown -->
+                <div id="suggestionBox" class="hidden absolute w-full bg-white border border-gray-100 rounded-xl mt-1 shadow-xl max-h-60 overflow-y-auto suggestion-scroll top-full left-0">
+                    <!-- Data injected via JS -->
+                </div>
             </div>
 
-            <!-- Products Container -->
+            <!-- Products List Container -->
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <i class="fas fa-boxes text-indigo-400"></i> All Inventory
+            </h3>
             <div id="productsContainer" class="flex flex-col gap-3">
                 <!-- Loading State -->
                 <div class="flex flex-col items-center justify-center py-10 text-gray-400">
@@ -65,7 +76,7 @@
 
         </div>
 
-        <!-- UPDATE STOCK POPUP MODAL (Hidden by default) -->
+        <!-- UPDATE STOCK POPUP MODAL -->
         <div id="stockPopup" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-white w-full max-w-[360px] rounded-2xl shadow-2xl popup-animate flex flex-col">
                 
@@ -144,7 +155,7 @@
         
         let allProducts = []; 
 
-        // Fetch and display products
+        // 1. Fetch Data
         window.loadStockProducts = async function() {
             const container = document.getElementById('productsContainer');
             
@@ -160,13 +171,12 @@
                     allProducts.push(data);
                     count++;
 
-                    // Determine if stock is low or out
                     let stockBadgeClass = "bg-indigo-100 text-indigo-700";
                     if (data.quantity <= 0) stockBadgeClass = "bg-red-100 text-red-700 border border-red-200";
                     else if (data.quantity <= 5) stockBadgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
 
                     html += `
-                    <div class="product-card bg-white p-4 rounded-xl shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex justify-between items-center">
+                    <div class="product-card bg-white p-4 rounded-xl shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex justify-between items-center transition hover:shadow-md">
                         <div class="flex-1 pr-2">
                             <h3 class="font-bold text-gray-800 text-sm productNameText mb-1">${data.productName}</h3>
                             <div class="flex items-center gap-2">
@@ -177,7 +187,7 @@
                             </div>
                         </div>
                         
-                        <button onclick="openStockPopup('${data.id}')" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-3 rounded-xl transition flex flex-col items-center justify-center shadow-sm border border-indigo-100">
+                        <button onclick="openStockPopup('${data.id}')" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 p-3 rounded-xl transition flex flex-col items-center justify-center shadow-sm border border-indigo-100 active:scale-95">
                             <i class="fas fa-sync-alt text-sm mb-1"></i>
                             <span class="text-[9px] font-bold uppercase tracking-wider">Update</span>
                         </button>
@@ -206,8 +216,66 @@
             }
         };
 
-        // --- POPUP UPDATE LOGIC ---
+        // 2. Search Autocomplete Logic
+        window.showSuggestions = function(value) {
+            const box = document.getElementById('suggestionBox');
+            
+            // Filter Main List visually
+            const cards = document.getElementsByClassName("product-card");
+            const names = document.getElementsByClassName("productNameText");
+            for (let i = 0; i < cards.length; i++) {
+                let nameValue = names[i].innerText || names[i].textContent;
+                if (nameValue.toLowerCase().indexOf(value.toLowerCase()) > -1) {
+                    cards[i].style.display = "flex";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
 
+            // Generate Suggestion Dropdown
+            if (!value.trim()) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const filtered = allProducts.filter(p => p.productName.toLowerCase().includes(value.toLowerCase()));
+            
+            if (filtered.length > 0) {
+                box.innerHTML = filtered.map(p => {
+                    let qtyColor = p.quantity <= 0 ? 'text-red-500' : 'text-indigo-600';
+                    return `
+                    <div onclick="selectProductFromSearch('${p.id}', '${p.productName}')" class="p-3 border-b border-gray-50 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500"><i class="fas fa-box"></i></div>
+                            <span class="text-sm font-bold text-gray-700">${p.productName}</span>
+                        </div>
+                        <span class="text-[10px] bg-gray-100 ${qtyColor} font-bold px-2 py-1 rounded-md">Stock: ${p.quantity} ${p.unit}</span>
+                    </div>
+                `}).join('');
+                box.classList.remove('hidden');
+            } else {
+                box.innerHTML = `<div class="p-4 text-xs font-semibold text-gray-400 text-center"><i class="fas fa-search-minus mb-1 text-lg block"></i> No matching products</div>`;
+                box.classList.remove('hidden');
+            }
+        };
+
+        // Select Product from Dropdown
+        window.selectProductFromSearch = function(id, name) {
+            document.getElementById('searchInput').value = name;
+            document.getElementById('suggestionBox').classList.add('hidden');
+            openStockPopup(id);
+        };
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchInput = document.getElementById('searchInput');
+            const suggestionBox = document.getElementById('suggestionBox');
+            if (!searchInput.contains(event.target) && !suggestionBox.contains(event.target)) {
+                suggestionBox.classList.add('hidden');
+            }
+        });
+
+        // 3. Popup & Update Logic
         window.openStockPopup = function(docId) {
             const product = allProducts.find(p => p.id === docId);
             if (!product) return;
@@ -221,7 +289,6 @@
             
             document.getElementById('adjustmentQty').value = '';
             
-            // Store current quantity temporarily in a global variable for calculation
             window.currentEditingQty = parseFloat(product.quantity) || 0;
             window.currentEditingUnit = product.unit;
 
@@ -230,6 +297,8 @@
 
         window.closeStockPopup = function() {
             document.getElementById('stockPopup').classList.add('hidden');
+            document.getElementById('searchInput').value = ''; // clear search visually
+            window.showSuggestions(''); // reset list visually
         };
 
         window.submitStockUpdate = async function(type) {
@@ -255,10 +324,8 @@
                 newQty -= adjQty;
             }
 
-            // Calculate new total value
             const newTotalValue = parseFloat((newQty * buyPrice).toFixed(2));
 
-            // Button Loading State
             const btnId = type === 'add' ? 'btnAddStock' : 'btnReduceStock';
             const btn = document.getElementById(btnId);
             const originalHtml = btn.innerHTML;
@@ -274,32 +341,15 @@
 
                 alert(`✅ Stock updated successfully! New Stock: ${newQty} ${window.currentEditingUnit}`);
                 closeStockPopup();
-                window.loadStockProducts(); // Refresh list
+                window.loadStockProducts(); // Refresh list to get new data
 
             } catch (error) {
                 console.error("Error updating stock: ", error);
                 alert("❌ Failed to update stock.");
             }
 
-            // Restore button
             btn.innerHTML = originalHtml;
             btn.disabled = false;
-        };
-
-        // Search Filter Logic
-        window.filterProducts = function() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const cards = document.getElementsByClassName("product-card");
-            const names = document.getElementsByClassName("productNameText");
-
-            for (let i = 0; i < cards.length; i++) {
-                let nameValue = names[i].innerText || names[i].textContent;
-                if (nameValue.toLowerCase().indexOf(input) > -1) {
-                    cards[i].style.display = "flex";
-                } else {
-                    cards[i].style.display = "none";
-                }
-            }
         };
 
         window.onload = function() {
@@ -307,4 +357,4 @@
         };
     </script>
 </body>
-          </html>
+</html>
