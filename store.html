@@ -13,8 +13,6 @@
             margin: 0 auto; 
             background-color: #fafafa; 
             min-height: 100vh; 
-            display: flex;
-            flex-direction: column;
             position: relative; 
             box-shadow: 0 0 20px rgba(0,0,0,0.05); 
         }
@@ -22,11 +20,10 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
         }
-        .menu-card:active {
-            transform: scale(0.92);
+        .menu-card:active, .alert-card:active {
+            transform: scale(0.95);
         }
         ::-webkit-scrollbar { display: none; }
-        .content-area { padding-bottom: 80px; } 
     </style>
 </head>
 <body>
@@ -50,7 +47,8 @@
             </button>
         </div>
 
-        <div class="p-4 flex-1 content-area">
+        <!-- Main Content Area (pb-24 ensures scroll space for footer) -->
+        <div class="p-4 pb-24">
             
             <!-- Dashboard Main Cards -->
             <div class="grid grid-cols-2 gap-3 mb-5">
@@ -73,33 +71,35 @@
                 </div>
             </div>
 
-            <!-- Stock Alerts Section -->
+            <!-- Stock Alerts Section (Clickable) -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-1.5 h-4 bg-red-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Stock Alerts</h3>
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(245,158,11,0.4)] relative overflow-hidden">
+                <!-- Low Stock Card (Clickable Link) -->
+                <a href="low_stock.html" class="alert-card block bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(245,158,11,0.4)] relative overflow-hidden transition-transform">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-exclamation-triangle absolute top-4 right-4 text-2xl text-white/20"></i>
                     <h3 class="text-[10px] font-bold uppercase text-orange-50 mb-1 tracking-wider">Low Stock (≤ 5)</h3>
                     <h2 class="text-2xl font-bold tracking-tight" id="lowStockCount">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
-                </div>
+                </a>
 
-                <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.4)] relative overflow-hidden">
+                <!-- No Stock Card (Clickable Link) -->
+                <a href="no_stock.html" class="alert-card block bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.4)] relative overflow-hidden transition-transform">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-times-circle absolute top-4 right-4 text-2xl text-white/20"></i>
                     <h3 class="text-[10px] font-bold uppercase text-red-100 mb-1 tracking-wider">No Stock (0)</h3>
                     <h2 class="text-2xl font-bold tracking-tight" id="noStockCount">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
-                </div>
+                </a>
             </div>
 
-            <!-- Store Management Section (ক্লিক করলে পেজ খুলবে) -->
+            <!-- Store Management Section -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Store Management</h3>
@@ -193,6 +193,7 @@
 
         async function loadDashboardStats() {
             try {
+                // Ensure this collection name matches where you save your products
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
                 let totalStockValue = 0;
