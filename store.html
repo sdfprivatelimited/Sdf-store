@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SDF STORE - Store Dashboard</title>
+    <title>গোডাউন (Main Store) - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,225 +11,167 @@
         .app-container { 
             max-width: 480px; 
             margin: 0 auto; 
-            background-color: #ffffff; 
-            height: 100vh; 
+            background-color: #f8fafc; 
+            min-height: 100vh; 
             display: flex;
             flex-direction: column;
             position: relative; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-            overflow: hidden; 
         }
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 20px;
+        .menu-card {
+            transition: all 0.2s ease-in-out;
         }
-        .scrollable-content::-webkit-scrollbar { display: none; }
-        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+        .menu-card:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
 
-        <!-- Header (Fixed / Sticky) -->
-        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
             <a href="index.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
-            <h1 class="text-xl font-bold tracking-wider" id="headerTitle">STORE DASHBOARD</h1>
-            <button class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-bell"></i></button>
+            <div class="text-center">
+                <h1 class="text-xl font-bold tracking-wider">গোডাউন</h1>
+                <p class="text-[10px] font-medium opacity-90 uppercase tracking-widest">(Main Store)</p>
+            </div>
+            <div class="w-6"></div> <!-- Spacer for centering -->
         </div>
 
-        <!-- Scrollable Middle Content -->
-        <div class="scrollable-content bg-gray-50">
+        <div class="p-4 flex-1">
             
-            <!-- All Branches Collection Overview -->
-            <div class="px-4 mt-5 mb-4">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-gray-800 font-bold text-sm uppercase"><i class="fas fa-chart-line text-indigo-500 mr-1"></i> All Branches Collection</h3>
-                    <span class="bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2 py-1 rounded-full border border-indigo-200">3 Branches Active</span>
+            <!-- Dashboard Top Cards (Data from Firebase) -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <!-- Total Stock Value Card -->
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                    <i class="fas fa-wallet absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
+                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট টাকার মাল</h3>
+                    <h2 class="text-xl font-bold" id="totalStockValue">
+                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                    </h2>
                 </div>
+
+                <!-- Total Products Count Card -->
+                <div class="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                    <i class="fas fa-boxes absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
+                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট প্রোডাক্ট</h3>
+                    <h2 class="text-2xl font-bold" id="totalProductsCount">
+                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                    </h2>
+                </div>
+            </div>
+
+            <hr class="border-gray-200 mb-5">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 pl-1">Store Management</h3>
+
+            <!-- Action Menu Grid -->
+            <div class="grid grid-cols-2 gap-3">
                 
-                <div class="grid gap-3">
-                    
-                    <!-- Today's Collection Card -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col">
-                        <div class="flex justify-between items-center mb-2 border-b border-indigo-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase">Today's Collection</span>
-                            <span class="text-lg font-bold text-indigo-700">₹ <span id="todayTotal">0.00</span></span>
-                        </div>
-                        <div class="flex justify-between text-[11px] font-bold">
-                            <span class="text-green-600"><i class="fas fa-money-bill-wave"></i> Cash: ₹<span id="todayCash">0.00</span></span>
-                            <span class="text-blue-600"><i class="fas fa-mobile-alt"></i> Online: ₹<span id="todayOnline">0.00</span></span>
-                        </div>
+                <!-- Add Product -->
+                <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-box-open"></i>
                     </div>
+                    <span class="text-xs font-bold text-gray-700">Add Product</span>
+                </button>
 
-                    <!-- This Week's Collection Card -->
-                    <div class="bg-gradient-to-r from-green-50 to-white p-4 rounded-xl border border-green-100 shadow-sm flex flex-col">
-                        <div class="flex justify-between items-center mb-2 border-b border-green-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase">This Week</span>
-                            <span class="text-lg font-bold text-green-700">₹ <span id="weekTotal">0.00</span></span>
-                        </div>
-                        <div class="flex justify-between text-[11px] font-bold">
-                            <span class="text-green-600"><i class="fas fa-money-bill-wave"></i> Cash: ₹<span id="weekCash">0.00</span></span>
-                            <span class="text-blue-600"><i class="fas fa-mobile-alt"></i> Online: ₹<span id="weekOnline">0.00</span></span>
-                        </div>
+                <!-- View Products -->
+                <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-list"></i>
                     </div>
+                    <span class="text-xs font-bold text-gray-700">View Products</span>
+                </button>
 
-                    <!-- This Month's Collection Card -->
-                    <div class="bg-gradient-to-r from-purple-50 to-white p-4 rounded-xl border border-purple-100 shadow-sm flex flex-col">
-                        <div class="flex justify-between items-center mb-2 border-b border-purple-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase">This Month</span>
-                            <span class="text-lg font-bold text-purple-700">₹ <span id="monthTotal">0.00</span></span>
-                        </div>
-                        <div class="flex justify-between text-[11px] font-bold">
-                            <span class="text-green-600"><i class="fas fa-money-bill-wave"></i> Cash: ₹<span id="monthCash">0.00</span></span>
-                            <span class="text-blue-600"><i class="fas fa-mobile-alt"></i> Online: ₹<span id="monthOnline">0.00</span></span>
-                        </div>
+                <!-- Update Stock -->
+                <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-sync-alt"></i>
                     </div>
+                    <span class="text-xs font-bold text-gray-700">Update Stock</span>
+                </button>
 
-                </div>
-            </div>
+                <!-- Purchase Entry -->
+                <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-cart-plus"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
+                </button>
 
-            <!-- Inventory Management -->
-            <div class="px-4 mb-4 mt-2">
-                <h3 class="text-gray-800 font-bold mb-3 text-sm uppercase">Inventory Management</h3>
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <a href="purchase_entry.html" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
-                        <i class="fas fa-cart-plus text-3xl text-indigo-500 mb-2"></i>
-                        <span class="text-sm font-bold text-gray-700 text-center">Purchase Entry</span>
-                    </a>
-                    <a href="purchase_views.html" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
-                        <i class="fas fa-list-alt text-3xl text-blue-500 mb-2"></i>
-                        <span class="text-sm font-bold text-gray-700 text-center">Purchase Views</span>
-                    </a>
-                </div>
-                <!-- Transfer Button Added Here -->
-                <a href="transfer.html" class="w-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transform transition hover:scale-105 active:scale-95">
-                    <i class="fas fa-truck-loading text-lg"></i> Transfer to Branch
-                </a>
-            </div>
+                <!-- Purchase Views -->
+                <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Purchase Views</span>
+                </button>
 
-            <!-- Supplier Billing Section -->
-            <div class="px-4 mb-6">
-                <h3 class="text-gray-800 font-bold mb-3 text-sm uppercase">Supplier Bills</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <a href="pending_bills.html" class="bg-red-50 border border-red-100 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
-                        <i class="fas fa-file-invoice-dollar text-3xl text-red-500 mb-2"></i>
-                        <span class="text-sm font-bold text-red-700 text-center">Pending</span>
-                        <span class="text-xs text-red-500 mt-1">₹ <span id="valPending">0.00</span></span>
-                    </a>
-                    
-                    <a href="paid_bills.html" class="bg-green-50 border border-green-100 rounded-xl shadow-sm p-4 flex flex-col items-center justify-center transform transition hover:scale-105 active:scale-95">
-                        <i class="fas fa-check-double text-3xl text-green-500 mb-2"></i>
-                        <span class="text-sm font-bold text-green-700 text-center">Paid</span>
-                        <span class="text-xs text-green-500 mt-1">View History</span>
-                    </a>
-                </div>
+                <!-- Transfer to Branch -->
+                <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
+                </button>
+
             </div>
+            
             <div class="h-10"></div>
         </div>
     </div>
 
-    <!-- Firebase Script -->
+    <!-- Firebase Script for Dashboard Analytics -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
+        // আপনার ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
             authDomain: "sdf-store-f39bd.firebaseapp.com",
             projectId: "sdf-store-f39bd",
             storageBucket: "sdf-store-f39bd.firebasestorage.app",
             messagingSenderId: "988561141451",
-            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
-            measurementId: "G-WH88QMN0Z5"
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Helper function to format dates as YYYY-MM-DD in local time
-        function getLocalYYYYMMDD(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        async function fetchDashboardData() {
+        // ডেটাবেস থেকে টোটাল ভ্যালু এবং প্রোডাক্ট কাউন্ট নিয়ে আসা
+        async function loadDashboardStats() {
             try {
-                // 1. Calculate Date Boundaries
-                const now = new Date();
-                const todayStr = getLocalYYYYMMDD(now);
-                const monthStr = todayStr.substring(0, 7); // Format: YYYY-MM
+                // আপনি যেই কালেকশনে ডেটা সেভ করেন সেটির নাম দিন (e.g., 'inventory_purchases' or 'products')
+                const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
+                
+                let totalStockValue = 0;
+                let totalProducts = 0;
 
-                // Calculate Start of Week (Monday)
-                const startOfWeek = new Date(now);
-                const day = startOfWeek.getDay() || 7; // Sunday is 0, make it 7
-                startOfWeek.setDate(startOfWeek.getDate() - day + 1); // Go back to Monday
-                const weekStartStr = getLocalYYYYMMDD(startOfWeek);
-
-                // Variables for Collections
-                let tCash=0, tOnline=0, tTotal=0; // Today
-                let wCash=0, wOnline=0, wTotal=0; // Week
-                let mCash=0, mOnline=0, mTotal=0; // Month
-
-                // 2. Fetch All Branch Collections
-                const paymentsSnap = await getDocs(collection(db, "branch_daily_payments"));
-                paymentsSnap.forEach(doc => {
+                querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const d = data.date;
-                    const c = parseFloat(data.cashAmount) || 0;
-                    const o = parseFloat(data.onlineAmount) || 0;
-                    const tot = parseFloat(data.totalAmount) || 0;
-
-                    // Today's Data
-                    if (d === todayStr) { tCash += c; tOnline += o; tTotal += tot; }
                     
-                    // Weekly Data
-                    if (d >= weekStartStr && d <= todayStr) { wCash += c; wOnline += o; wTotal += tot; }
+                    // টোটাল কেনা দাম যোগ করা হচ্ছে
+                    totalStockValue += (parseFloat(data.totalPurchasePrice) || 0);
                     
-                    // Monthly Data
-                    if (d && d.startsWith(monthStr)) { mCash += c; mOnline += o; mTotal += tot; }
+                    // যতগুলো এন্ট্রি/প্রোডাক্ট আছে তা কাউন্ট করা হচ্ছে
+                    totalProducts++; 
                 });
 
-                // Update UI for Collections
-                document.getElementById('todayCash').innerText = tCash.toFixed(2);
-                document.getElementById('todayOnline').innerText = tOnline.toFixed(2);
-                document.getElementById('todayTotal').innerText = tTotal.toFixed(2);
-
-                document.getElementById('weekCash').innerText = wCash.toFixed(2);
-                document.getElementById('weekOnline').innerText = wOnline.toFixed(2);
-                document.getElementById('weekTotal').innerText = wTotal.toFixed(2);
-
-                document.getElementById('monthCash').innerText = mCash.toFixed(2);
-                document.getElementById('monthOnline').innerText = mOnline.toFixed(2);
-                document.getElementById('monthTotal').innerText = mTotal.toFixed(2);
-
-                // 3. Fetch Supplier Pending Bills
-                const purchaseSnap = await getDocs(collection(db, "purchases"));
-                let totalPending = 0;
-
-                purchaseSnap.forEach((doc) => {
-                    const data = doc.data();
-                    totalPending += parseFloat(data.dueAmount) || 0;
-                });
-
-                // Update Pending UI
-                document.getElementById('valPending').innerText = formatNumber(totalPending);
+                // UI তে ডেটা বসানো হচ্ছে
+                document.getElementById('totalStockValue').innerText = `₹ ${totalStockValue.toFixed(2)}`;
+                document.getElementById('totalProductsCount').innerText = totalProducts;
 
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Error loading stats:", error);
+                document.getElementById('totalStockValue').innerText = "₹ 0.00";
+                document.getElementById('totalProductsCount').innerText = "0";
             }
         }
 
-        function formatNumber(num) {
-            if (num >= 100000) return (num / 100000).toFixed(1) + 'L';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return num.toFixed(2);
-        }
-
-        window.onload = fetchDashboardData;
+        // পেজ লোড হওয়ার সাথে সাথে ফাংশনটি কল হবে
+        window.onload = loadDashboardStats;
     </script>
 </body>
 </html>
