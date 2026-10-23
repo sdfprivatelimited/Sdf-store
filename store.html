@@ -24,11 +24,8 @@
         .menu-card:active {
             transform: scale(0.92);
         }
-        /* Hide scrollbar for clean UI */
         ::-webkit-scrollbar { display: none; }
-        
-        /* Footer spacing */
-        .content-area { padding-bottom: 80px; } 
+        .content-area { padding-bottom: 70px; } 
     </style>
 </head>
 <body>
@@ -56,23 +53,43 @@
         <div class="p-4 flex-1 content-area">
             
             <!-- Dashboard Top Cards (Data from Firebase) -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-2 gap-3 mb-6">
                 <!-- Total Stock Value Card -->
-                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-[0_8px_15px_-3px_rgba(79,70,229,0.4)] relative overflow-hidden">
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(79,70,229,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
-                    <i class="fas fa-wallet absolute top-4 right-4 text-2xl text-white/20"></i>
-                    <h3 class="text-[10px] font-semibold uppercase text-indigo-100 mb-1 tracking-wider">মোট টাকার মাল</h3>
-                    <h2 class="text-xl font-bold tracking-tight" id="totalStockValue">
+                    <i class="fas fa-wallet absolute top-3 right-3 text-xl text-white/20"></i>
+                    <h3 class="text-[9px] font-semibold uppercase text-indigo-100 mb-1 tracking-wider">মোট টাকার মাল</h3>
+                    <h2 class="text-lg font-bold tracking-tight" id="totalStockValue">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
 
                 <!-- Total Products Count Card -->
-                <div class="bg-gradient-to-br from-teal-400 to-emerald-600 rounded-2xl p-4 text-white shadow-[0_8px_15px_-3px_rgba(16,185,129,0.4)] relative overflow-hidden">
+                <div class="bg-gradient-to-br from-teal-400 to-emerald-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(16,185,129,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
-                    <i class="fas fa-boxes absolute top-4 right-4 text-2xl text-white/20"></i>
-                    <h3 class="text-[10px] font-semibold uppercase text-emerald-100 mb-1 tracking-wider">মোট প্রোডাক্ট</h3>
-                    <h2 class="text-2xl font-bold tracking-tight" id="totalProductsCount">
+                    <i class="fas fa-boxes absolute top-3 right-3 text-xl text-white/20"></i>
+                    <h3 class="text-[9px] font-semibold uppercase text-emerald-100 mb-1 tracking-wider">মোট প্রোডাক্ট</h3>
+                    <h2 class="text-xl font-bold tracking-tight" id="totalProductsCount">
+                        <i class="fas fa-circle-notch fa-spin text-sm"></i>
+                    </h2>
+                </div>
+
+                <!-- Low Stock Card -->
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-3 text-white shadow-[0_4px_10px_-3px_rgba(245,158,11,0.4)] relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
+                    <i class="fas fa-exclamation-triangle absolute top-3 right-3 text-lg text-white/20"></i>
+                    <h3 class="text-[9px] font-semibold uppercase text-orange-100 mb-1 tracking-wider">Low Stock</h3>
+                    <h2 class="text-lg font-bold tracking-tight" id="lowStockCount">
+                        <i class="fas fa-circle-notch fa-spin text-sm"></i>
+                    </h2>
+                </div>
+
+                <!-- No Stock Card -->
+                <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-3 text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.4)] relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
+                    <i class="fas fa-times-circle absolute top-3 right-3 text-lg text-white/20"></i>
+                    <h3 class="text-[9px] font-semibold uppercase text-red-100 mb-1 tracking-wider">No Stock</h3>
+                    <h2 class="text-lg font-bold tracking-tight" id="noStockCount">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
@@ -83,10 +100,9 @@
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Store Management</h3>
             </div>
 
-            <!-- Action Menu Grid (Purchase cards moved to bottom) -->
+            <!-- Action Menu Grid -->
             <div class="grid grid-cols-2 gap-3">
                 
-                <!-- Add Product -->
                 <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-box-open"></i>
@@ -94,7 +110,6 @@
                     <span class="text-xs font-bold text-gray-700">Add Product</span>
                 </button>
 
-                <!-- View Products -->
                 <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-list-ul"></i>
@@ -102,7 +117,6 @@
                     <span class="text-xs font-bold text-gray-700">View Products</span>
                 </button>
 
-                <!-- Update Stock -->
                 <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-sync-alt"></i>
@@ -110,7 +124,6 @@
                     <span class="text-xs font-bold text-gray-700">Update Stock</span>
                 </button>
 
-                <!-- Transfer to Branch -->
                 <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-truck-fast"></i>
@@ -118,7 +131,6 @@
                     <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
                 </button>
 
-                <!-- Purchase Entry (Moved to Bottom) -->
                 <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-cart-plus"></i>
@@ -126,7 +138,6 @@
                     <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
                 </button>
 
-                <!-- Purchase Views (Moved to Bottom) -->
                 <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-file-invoice-dollar"></i>
@@ -137,38 +148,25 @@
             </div>
         </div>
 
-        <!-- Modern App Footer (Bottom Navigation) -->
-        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.03)] z-40 rounded-t-2xl">
-            <div class="flex justify-around items-center py-2">
+        <!-- Clean Footer (Home, Stock, Profile) -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+            <div class="flex justify-between items-center px-10 py-3">
                 <!-- Home (Active) -->
-                <a href="index.html" class="flex flex-col items-center p-2 text-indigo-600">
-                    <i class="fas fa-house-chimney mb-1 text-lg"></i>
-                    <span class="text-[9px] font-bold tracking-wide">Home</span>
+                <a href="index.html" class="flex flex-col items-center text-indigo-600">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Home</span>
                 </a>
                 
                 <!-- Stock -->
-                <a href="view_products.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
-                    <i class="fas fa-boxes-stacked mb-1 text-lg"></i>
-                    <span class="text-[9px] font-bold tracking-wide">Stock</span>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Stock</span>
                 </a>
 
-                <!-- Floating Center Action Button (Add) -->
-                <div class="relative -top-5">
-                    <button onclick="window.location.href='add_product.html'" class="w-12 h-12 bg-indigo-600 rounded-full flex justify-center items-center text-white text-xl shadow-lg shadow-indigo-500/40 hover:scale-105 transition transform active:scale-95 border-4 border-white">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-
-                <!-- Reports -->
-                <a href="purchase_views.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
-                    <i class="fas fa-chart-pie mb-1 text-lg"></i>
-                    <span class="text-[9px] font-bold tracking-wide">Reports</span>
-                </a>
-
-                <!-- Profile/Settings -->
-                <a href="#" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
-                    <i class="fas fa-user-gear mb-1 text-lg"></i>
-                    <span class="text-[9px] font-bold tracking-wide">Settings</span>
+                <!-- Profile -->
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Profile</span>
                 </a>
             </div>
         </div>
@@ -195,25 +193,41 @@
         // Fetch data
         async function loadDashboardStats() {
             try {
+                // Change 'inventory_purchases' to your actual collection name where products are saved
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
                 let totalStockValue = 0;
                 let totalProducts = 0;
+                let lowStockCount = 0;
+                let noStockCount = 0;
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    const qty = parseFloat(data.quantity) || 0;
+
                     totalStockValue += (parseFloat(data.totalPurchasePrice) || 0);
                     totalProducts++; 
+
+                    // Checking stock conditions (Assuming 5 or less is low stock)
+                    if (qty <= 0) {
+                        noStockCount++;
+                    } else if (qty <= 5) {
+                        lowStockCount++;
+                    }
                 });
 
-                // Update UI with smooth formatting
+                // Update UI
                 document.getElementById('totalStockValue').innerHTML = `₹${totalStockValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
                 document.getElementById('totalProductsCount').innerText = totalProducts;
+                document.getElementById('lowStockCount').innerText = lowStockCount;
+                document.getElementById('noStockCount').innerText = noStockCount;
 
             } catch (error) {
                 console.error("Error loading stats:", error);
                 document.getElementById('totalStockValue').innerText = "₹ 0.00";
                 document.getElementById('totalProductsCount').innerText = "0";
+                document.getElementById('lowStockCount').innerText = "0";
+                document.getElementById('noStockCount').innerText = "0";
             }
         }
 
