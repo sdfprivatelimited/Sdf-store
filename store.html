@@ -20,6 +20,7 @@
         }
         .menu-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
         }
         .menu-card:active {
             transform: scale(0.92);
@@ -51,9 +52,8 @@
 
         <div class="p-4 flex-1 content-area">
             
-            <!-- Dashboard Main Cards (Data from Firebase) -->
+            <!-- Dashboard Main Cards -->
             <div class="grid grid-cols-2 gap-3 mb-5">
-                <!-- Total Stock Value Card -->
                 <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(79,70,229,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
                     <i class="fas fa-wallet absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -63,7 +63,6 @@
                     </h2>
                 </div>
 
-                <!-- Total Products Count Card -->
                 <div class="bg-gradient-to-br from-teal-400 to-emerald-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(16,185,129,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
                     <i class="fas fa-boxes absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -74,14 +73,13 @@
                 </div>
             </div>
 
-            <!-- Stock Alerts Section (Low Stock & No Stock) -->
+            <!-- Stock Alerts Section -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-1.5 h-4 bg-red-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Stock Alerts</h3>
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <!-- Low Stock Card -->
                 <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(245,158,11,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-exclamation-triangle absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -91,7 +89,6 @@
                     </h2>
                 </div>
 
-                <!-- No Stock Card -->
                 <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.4)] relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-times-circle absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -102,7 +99,7 @@
                 </div>
             </div>
 
-            <!-- Store Management Section -->
+            <!-- Store Management Section (ক্লিক করলে পেজ খুলবে) -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Store Management</h3>
@@ -110,47 +107,47 @@
 
             <div class="grid grid-cols-2 gap-3">
                 
-                <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="add_product.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-box-open"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Add Product</span>
-                </button>
+                </a>
 
-                <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="view_products.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-list-ul"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">View Products</span>
-                </button>
+                </a>
 
-                <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="update_stock.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-sync-alt"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Update Stock</span>
-                </button>
+                </a>
 
-                <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="transfer_branch.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-truck-fast"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
-                </button>
+                </a>
 
-                <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="purchase_entry.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-cart-plus"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
-                </button>
+                </a>
 
-                <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                <a href="purchase_views.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Purchase Views</span>
-                </button>
+                </a>
 
             </div>
         </div>
@@ -196,7 +193,6 @@
 
         async function loadDashboardStats() {
             try {
-                // Ensure this collection name matches where you save your products
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
                 let totalStockValue = 0;
