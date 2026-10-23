@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer to Branch - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            min-height: 100vh; 
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar { display: none; }
+        .content-area { padding-bottom: 90px; flex: 1; }
+        /* Custom Scrollbar for suggestion box */
+        .suggestion-scroll::-webkit-scrollbar { display: block; width: 4px; }
+        .suggestion-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        
+        .expand-anim {
+            animation: expandBox 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes expandBox {
+            0% { transform: scale(0.95) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Modern Slim Header -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2">
+                    Branch Transfer
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Send Stock</span>
+                </h1>
+            </div>
+            <div class="bg-white/20 px-2 py-1 rounded-lg text-[10px] font-bold" id="dbStatus">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+
+        <div class="p-4 content-area">
+            
+            <!-- Transfer Information Card -->
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-5 relative">
+                <h2 class="text-sm font-bold text-indigo-900 mb-3 flex items-center gap-2"><i class="fas fa-truck-loading text-indigo-500"></i> Transfer Details</h2>
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div>
+                        <label class="font-bold uppercase text-[10px] text-gray-500">Date</label>
+                        <input type="date" id="transferDate" class="w-full border border-indigo-200 p-2 rounded-lg text-sm bg-white outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="font-bold uppercase text-[10px] text-gray-500">Select Branch</label>
+                        <select id="branchSelect" class="w-full border border-indigo-200 p-2 rounded-lg text-sm bg-white outline-none focus:border-indigo-500">
+                            <option value="">-- Choose Branch --</option>
+                            <option value="Branch 1 (Siliguri)">Branch 1 (Siliguri)</option>
+                            <option value="Branch 2 (Jalpaiguri)">Branch 2 (Jalpaiguri)</option>
+                            <option value="Branch 3 (Kolkata)">Branch 3 (Kolkata)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Search Box -->
+            <div class="relative mb-5 z-20">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block"><i class="fas fa-search text-indigo-400"></i> Search Product to Transfer</label>
+                <input type="text" id="searchInput" placeholder="Type product name..." class="w-full bg-white border-2 border-indigo-200 py-3 px-4 rounded-xl focus:outline-none focus:border-indigo-600 shadow-sm transition font-bold text-sm text-indigo-900" oninput="showSuggestions(this.value)" onfocus="showSuggestions(this.value)" autocomplete="off">
+                
+                <!-- Suggestions Dropdown -->
+                <div id="suggestionBox" class="hidden absolute w-full bg-white border border-gray-100 rounded-xl mt-2 shadow-2xl max-h-64 overflow-y-auto suggestion-scroll top-full left-0 z-50">
+                    <!-- Data injected via JS -->
+                </div>
+            </div>
+
+            <!-- Selected Product Card (Hidden until selected) -->
+            <div id="transferCardSection" class="hidden bg-white rounded-2xl shadow-lg border border-gray-100 p-4 expand-anim relative mb-5">
+                <button onclick="resetSelection()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-lg transition"><i class="fas fa-times-circle"></i></button>
+
+                <div class="mb-4 pr-6">
+                    <span class="bg-indigo-100 text-indigo-600 text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-wider inline-block mb-1">Selected Item</span>
+                    <h3 id="selectedProductName" class="text-lg font-extrabold text-gray-800 leading-tight">Product Name</h3>
+                    <p class="text-xs font-semibold text-gray-500 mt-1">Available in Main Store: <span id="availableStock" class="font-bold text-indigo-600 px-1 py-0.5 bg-indigo-50 rounded">0</span></p>
+                </div>
+
+                <!-- Input for Transfer Quantity -->
+                <div class="mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <label class="text-[10px] font-bold text-gray-600 uppercase mb-2 block text-center">Transfer Quantity</label>
+                    <div class="relative flex items-center justify-center">
+                        <input type="number" id="transferQty" placeholder="0" class="w-2/3 border-2 border-indigo-300 py-2 rounded-lg focus:outline-none focus:border-indigo-600 text-xl bg-white text-center font-black text-gray-800 shadow-inner" oninput="calculateTransferTotals()">
+                        <span id="transferUnitLabel" class="absolute right-12 text-xs font-bold text-gray-400"></span>
+                    </div>
+                </div>
+
+                <!-- 3 Colored Total Boxes (Auto Calculated) -->
+                <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block text-center">Transfer Value Calculation</label>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 text-center">
+                        <span class="block text-[8px] font-bold text-blue-600 uppercase">Total Buy</span>
+                        <span class="block text-xs font-bold text-blue-800 mt-1" id="totalBuyDisplay">₹0.00</span>
+                    </div>
+                    <div class="bg-green-50 p-2 rounded-lg border border-green-200 text-center">
+                        <span class="block text-[8px] font-bold text-green-600 uppercase">Total Sell</span>
+                        <span class="block text-xs font-bold text-green-800 mt-1" id="totalSellDisplay">₹0.00</span>
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-lg border border-purple-200 text-center">
+                        <span class="block text-[8px] font-bold text-purple-600 uppercase">Total MRP</span>
+                        <span class="block text-xs font-bold text-purple-800 mt-1" id="totalMrpDisplay">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="submitTransfer()" id="btnTransfer" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 flex justify-center items-center gap-2 transform active:scale-95">
+                    <i class="fas fa-paper-plane"></i> Send to Branch
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Clean Footer -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Home</span>
+                </a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Stock</span>
+                </a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Profile</span>
+                </a>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allProducts = []; 
+        let selectedProduct = null;
+
+        // Set today's date by default
+        document.getElementById('transferDate').valueAsDate = new Date();
+
+        // 1. Fetch Data
+        window.loadData = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
+                allProducts = []; 
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id; 
+                    allProducts.push(data);
+                });
+                document.getElementById('dbStatus').innerHTML = `<i class="fas fa-check-circle text-green-300"></i> Ready`;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById('dbStatus').innerHTML = `<i class="fas fa-times-circle text-red-300"></i> Error`;
+            }
+        };
+
+        // 2. Search Autocomplete
+        window.showSuggestions = function(value) {
+            const box = document.getElementById('suggestionBox');
+            
+            if (!value.trim()) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const filtered = allProducts.filter(p => p.productName.toLowerCase().includes(value.toLowerCase()));
+            
+            if (filtered.length > 0) {
+                box.innerHTML = filtered.map(p => {
+                    let qty = parseFloat(p.quantity) || 0;
+                    let qtyColor = qty <= 0 ? 'text-red-500 bg-red-50' : 'text-indigo-600 bg-indigo-50';
+                    return `
+                    <div onclick="selectProduct('${p.id}')" class="p-4 border-b border-gray-50 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition">
+                        <div>
+                            <span class="text-sm font-bold text-gray-800 block">${p.productName}</span>
+                            <span class="text-[9px] text-gray-400">Buy: ₹${p.buyPricePerUnit} | Sell: ₹${p.sellPricePerUnit}</span>
+                        </div>
+                        <span class="text-[10px] font-black ${qtyColor} px-2 py-1 rounded-md border border-indigo-100">Stock: ${qty} ${p.unit}</span>
+                    </div>
+                `}).join('');
+                box.classList.remove('hidden');
+            } else {
+                box.innerHTML = `<div class="p-4 text-xs font-semibold text-gray-400 text-center">No product found in stock</div>`;
+                box.classList.remove('hidden');
+            }
+        };
+
+        // 3. Select Product & Setup Card
+        window.selectProduct = function(docId) {
+            selectedProduct = allProducts.find(p => p.id === docId);
+            if (!selectedProduct) return;
+
+            document.getElementById('searchInput').value = selectedProduct.productName;
+            document.getElementById('suggestionBox').classList.add('hidden');
+            
+            document.getElementById('selectedProductName').innerText = selectedProduct.productName;
+            
+            let qty = parseFloat(selectedProduct.quantity) || 0;
+            document.getElementById('availableStock').innerText = `${qty} ${selectedProduct.unit}`;
+            if(qty <= 0) document.getElementById('availableStock').classList.replace('text-indigo-600', 'text-red-600');
+            else document.getElementById('availableStock').classList.replace('text-red-600', 'text-indigo-600');
+
+            document.getElementById('transferUnitLabel').innerText = selectedProduct.unit;
+            document.getElementById('transferQty').value = '';
+            
+            // Reset totals
+            window.calculateTransferTotals();
+
+            document.getElementById('transferCardSection').classList.remove('hidden');
+            setTimeout(() => document.getElementById('transferQty').focus(), 300);
+        };
+
+        // 4. Calculate Totals dynamically as user types quantity
+        window.calculateTransferTotals = function() {
+            if (!selectedProduct) return;
+            
+            let transferQty = parseFloat(document.getElementById('transferQty').value) || 0;
+            
+            let buyPrice = parseFloat(selectedProduct.buyPricePerUnit) || 0;
+            let sellPrice = parseFloat(selectedProduct.sellPricePerUnit) || 0;
+            let mrpPrice = parseFloat(selectedProduct.mrpPerUnit) || 0;
+
+            let totalBuy = transferQty * buyPrice;
+            let totalSell = transferQty * sellPrice;
+            let totalMrp = transferQty * mrpPrice;
+
+            document.getElementById('totalBuyDisplay').innerText = `₹${totalBuy.toFixed(2)}`;
+            document.getElementById('totalSellDisplay').innerText = `₹${totalSell.toFixed(2)}`;
+            document.getElementById('totalMrpDisplay').innerText = `₹${totalMrp.toFixed(2)}`;
+        };
+
+        // 5. Close/Reset Selection
+        window.resetSelection = function() {
+            document.getElementById('transferCardSection').classList.add('hidden');
+            document.getElementById('searchInput').value = '';
+            selectedProduct = null;
+        };
+
+        // 6. Submit Transfer
+        window.submitTransfer = async function() {
+            if (!selectedProduct) return;
+
+            const branch = document.getElementById('branchSelect').value;
+            const date = document.getElementById('transferDate').value;
+            const transferInput = document.getElementById('transferQty').value;
+            const transferQty = parseFloat(transferInput);
+
+            if (!branch) {
+                alert("Please select a Branch!");
+                return;
+            }
+            if (!transferInput || isNaN(transferQty) || transferQty <= 0) {
+                alert("Please enter a valid transfer quantity!");
+                return;
+            }
+
+            let currentMainStock = parseFloat(selectedProduct.quantity) || 0;
+
+            if (transferQty > currentMainStock) {
+                alert(`Not enough stock! You only have ${currentMainStock} ${selectedProduct.unit} available in Main Store.`);
+                return;
+            }
+
+            const btn = document.getElementById('btnTransfer');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Transferring...';
+            btn.disabled = true;
+
+            try {
+                // Calculate values for the transfer
+                let buyPrice = parseFloat(selectedProduct.buyPricePerUnit) || 0;
+                let sellPrice = parseFloat(selectedProduct.sellPricePerUnit) || 0;
+                let mrpPrice = parseFloat(selectedProduct.mrpPerUnit) || 0;
+
+                let totalBuyValue = parseFloat((transferQty * buyPrice).toFixed(2));
+                
+                // 1. Deduct stock from main store (inventory_purchases)
+                let newMainStock = currentMainStock - transferQty;
+                let newMainTotalValue = parseFloat((newMainStock * buyPrice).toFixed(2));
+
+                const productRef = doc(db, "inventory_purchases", selectedProduct.id);
+                await updateDoc(productRef, {
+                    quantity: newMainStock,
+                    totalPurchasePrice: newMainTotalValue
+                });
+
+                // 2. Save transfer record to a new collection (stock_transfers)
+                await addDoc(collection(db, "stock_transfers"), {
+                    branchName: branch,
+                    date: date,
+                    productId: selectedProduct.id,
+                    productName: selectedProduct.productName,
+                    transferQty: transferQty,
+                    unit: selectedProduct.unit,
+                    buyPricePerUnit: buyPrice,
+                    sellPricePerUnit: sellPrice,
+                    mrpPerUnit: mrpPrice,
+                    totalTransferBuyValue: totalBuyValue,
+                    timestamp: serverTimestamp()
+                });
+
+                // Update local array
+                selectedProduct.quantity = newMainStock;
+
+                alert(`✅ Successfully transferred ${transferQty} ${selectedProduct.unit} to ${branch}!\nMain store stock updated.`);
+                resetSelection();
+
+            } catch (error) {
+                console.error("Error processing transfer: ", error);
+                alert("❌ Failed to process transfer. Try again.");
+            }
+
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        };
+
+        // Hide suggestions on outside click
+        document.addEventListener('click', function(event) {
+            const searchInput = document.getElementById('searchInput');
+            const suggestionBox = document.getElementById('suggestionBox');
+            if (!searchInput.contains(event.target) && !suggestionBox.contains(event.target)) {
+                suggestionBox.classList.add('hidden');
+            }
+        });
+
+        window.onload = function() {
+            window.loadData();
+        };
+    </script>
+</body>
+</html>
