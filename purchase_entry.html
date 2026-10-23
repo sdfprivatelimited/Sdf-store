@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Entry - SDF STORE</title>
+    <title>গোডাউন (Main Store) - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,12 +11,18 @@
         .app-container { 
             max-width: 480px; 
             margin: 0 auto; 
-            background-color: #ffffff; 
+            background-color: #f8fafc; 
             min-height: 100vh; 
             display: flex;
             flex-direction: column;
             position: relative; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        .menu-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .menu-card:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -25,113 +31,103 @@
 
         <!-- Header -->
         <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
-            <a href="store.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
-            <h1 class="text-xl font-bold tracking-wider">ADD PRODUCT</h1>
-            <div class="w-6"></div>
+            <a href="index.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
+            <div class="text-center">
+                <h1 class="text-xl font-bold tracking-wider">গোডাউন</h1>
+                <p class="text-[10px] font-medium opacity-90 uppercase tracking-widest">(Main Store)</p>
+            </div>
+            <div class="w-6"></div> <!-- Spacer for centering -->
         </div>
 
         <div class="p-4 flex-1">
             
-            <!-- STEP 1: Basic Information -->
-            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-4">
-                <div class="grid grid-cols-2 gap-3 mb-2">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Entry Date</label>
-                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg text-sm bg-white outline-none" onchange="loadProductsByDate()">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Supplier (Optional)</label>
-                        <input type="text" id="supplierName" placeholder="Supplier Name" class="w-full border border-gray-300 p-2 rounded-lg text-sm outline-none">
-                    </div>
+            <!-- Dashboard Top Cards (Data from Firebase) -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <!-- Total Stock Value Card -->
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                    <i class="fas fa-wallet absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
+                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট টাকার মাল</h3>
+                    <h2 class="text-xl font-bold" id="totalStockValue">
+                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                    </h2>
+                </div>
+
+                <!-- Total Products Count Card -->
+                <div class="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                    <i class="fas fa-boxes absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
+                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট প্রোডাক্ট</h3>
+                    <h2 class="text-2xl font-bold" id="totalProductsCount">
+                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                    </h2>
                 </div>
             </div>
 
-            <hr class="border-gray-200 mb-4">
+            <hr class="border-gray-200 mb-5">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 pl-1">Store Management</h3>
 
-            <!-- STEP 2: Product Entry -->
-            <div id="productEntrySection">
-                <div class="mb-3">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Product Name</label>
-                    <input type="text" id="productName" placeholder="Enter product name..." class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" autocomplete="off">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Unit Type</label>
-                        <select id="unitType" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm">
-                            <option value="Kg">Kg</option>
-                            <option value="Gram">Gram</option>
-                            <option value="Pack">Pack</option>
-                            <option value="Box">Box</option>
-                            <option value="Piece">Piece</option>
-                        </select>
+            <!-- Action Menu Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                
+                <!-- Add Product -->
+                <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-box-open"></i>
                     </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Total Quantity</label>
-                        <input type="number" id="quantity" placeholder="Qty" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-indigo-500 text-sm" oninput="calculateTotals()">
-                    </div>
-                </div>
-
-                <!-- Per Unit Prices (3 Colored Boxes) -->
-                <div class="grid grid-cols-3 gap-2 mb-2">
-                    <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                        <label class="text-[9px] font-bold text-blue-700 uppercase block mb-1">Buy / Unit <span class="text-red-500">*</span></label>
-                        <input type="number" id="purchasePriceUnit" placeholder="₹ Buy" class="w-full border border-blue-300 p-1.5 rounded focus:outline-none focus:border-blue-500 text-xs bg-white" oninput="calculateTotals()">
-                    </div>
-                    <div class="bg-green-50 p-2 rounded-lg border border-green-200">
-                        <label class="text-[9px] font-bold text-green-700 uppercase block mb-1">Sell / Unit</label>
-                        <input type="number" id="sellingPriceUnit" placeholder="₹ Sell" class="w-full border border-green-300 p-1.5 rounded focus:outline-none focus:border-green-500 text-xs bg-white" oninput="calculateTotals()">
-                    </div>
-                    <div class="bg-purple-50 p-2 rounded-lg border border-purple-200">
-                        <label class="text-[9px] font-bold text-purple-700 uppercase block mb-1">MRP / Unit</label>
-                        <input type="number" id="mrpUnit" placeholder="₹ MRP" class="w-full border border-purple-300 p-1.5 rounded focus:outline-none focus:border-purple-500 text-xs bg-white" oninput="calculateTotals()">
-                    </div>
-                </div>
-
-                <!-- Total Calculated Display (3 Colored Boxes) -->
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <div class="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
-                        <span class="block text-[9px] font-bold text-blue-600 uppercase">Total Buy</span>
-                        <span class="block text-xs font-bold text-blue-800 mt-1" id="totalPurchaseDisplay">₹ 0.00</span>
-                    </div>
-                    <div class="bg-green-100 p-2 rounded-lg border border-green-300 text-center">
-                        <span class="block text-[9px] font-bold text-green-600 uppercase">Total Sell</span>
-                        <span class="block text-xs font-bold text-green-800 mt-1" id="totalSellDisplay">₹ 0.00</span>
-                    </div>
-                    <div class="bg-purple-100 p-2 rounded-lg border border-purple-300 text-center">
-                        <span class="block text-[9px] font-bold text-purple-600 uppercase">Total MRP</span>
-                        <span class="block text-xs font-bold text-purple-800 mt-1" id="totalMrpDisplay">₹ 0.00</span>
-                    </div>
-                </div>
-
-                <!-- DIRECT SAVE BUTTON -->
-                <button onclick="saveSingleProduct()" id="saveProductBtn" type="button" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
-                    <i class="fas fa-plus-circle"></i> Save Product to Database
+                    <span class="text-xs font-bold text-gray-700">Add Product</span>
                 </button>
-            </div>
 
-            <hr class="border-gray-200 my-6">
+                <!-- View Products -->
+                <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">View Products</span>
+                </button>
 
-            <!-- Added Products List for the Selected Date -->
-            <div>
-                <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 flex justify-between">
-                    <span>Products Added on <span id="displayDate" class="text-indigo-600">Today</span></span>
-                </h3>
-                <div id="datewiseProductList" class="flex flex-col gap-3">
-                    <!-- Data will load here dynamically -->
-                    <p class="text-xs text-gray-400 text-center italic">No products added for this date yet.</p>
-                </div>
+                <!-- Update Stock -->
+                <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Update Stock</span>
+                </button>
+
+                <!-- Purchase Entry -->
+                <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-cart-plus"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
+                </button>
+
+                <!-- Purchase Views -->
+                <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Purchase Views</span>
+                </button>
+
+                <!-- Transfer to Branch -->
+                <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-lg">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
+                </button>
+
             </div>
             
             <div class="h-10"></div>
         </div>
     </div>
 
-    <!-- Firebase Script -->
+    <!-- Firebase Script for Dashboard Analytics -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
+        // আপনার ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
             authDomain: "sdf-store-f39bd.firebaseapp.com",
@@ -144,139 +140,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Save Single Product Directly
-        window.saveSingleProduct = async function() {
-            const date = document.getElementById('entryDate').value;
-            const supplier = document.getElementById('supplierName').value || "N/A";
-            const name = document.getElementById('productName').value.trim();
-            const unit = document.getElementById('unitType').value;
-            const qty = parseFloat(document.getElementById('quantity').value);
-            
-            const buyUnit = parseFloat(document.getElementById('purchasePriceUnit').value);
-            const sellUnit = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
-            const mrpUnit = parseFloat(document.getElementById('mrpUnit').value) || 0;
-
-            if(!name || !qty || isNaN(qty) || isNaN(buyUnit)) {
-                alert("Please enter Product Name, Quantity, and Buy Price!");
-                return;
-            }
-
-            const totalBuy = parseFloat((qty * buyUnit).toFixed(2));
-            const btn = document.getElementById('saveProductBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            btn.disabled = true;
-
+        // ডেটাবেস থেকে টোটাল ভ্যালু এবং প্রোডাক্ট কাউন্ট নিয়ে আসা
+        async function loadDashboardStats() {
             try {
-                // Save directly to 'inventory_purchases' collection
-                await addDoc(collection(db, "inventory_purchases"), {
-                    date: date,
-                    supplierName: supplier,
-                    productName: name,
-                    unit: unit,
-                    quantity: qty,
-                    buyPricePerUnit: buyUnit,
-                    sellPricePerUnit: sellUnit,
-                    mrpPerUnit: mrpUnit,
-                    totalPurchasePrice: totalBuy,
-                    timestamp: serverTimestamp()
-                });
-
-                alert("✅ Product Added Successfully!");
-                clearProductInputs();
-                loadProductsByDate(); // Refresh the list below
-
-            } catch (error) {
-                console.error("Error saving product:", error);
-                alert("❌ Problem saving product!");
-            }
-
-            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Save Product to Database';
-            btn.disabled = false;
-        };
-
-        // Fetch products for selected date
-        window.loadProductsByDate = async function() {
-            const selectedDate = document.getElementById('entryDate').value;
-            document.getElementById('displayDate').innerText = selectedDate;
-            const listContainer = document.getElementById('datewiseProductList');
-            
-            listContainer.innerHTML = '<p class="text-xs text-indigo-400 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</p>';
-
-            try {
-                const q = query(collection(db, "inventory_purchases"), where("date", "==", selectedDate));
-                const querySnapshot = await getDocs(q);
+                // আপনি যেই কালেকশনে ডেটা সেভ করেন সেটির নাম দিন (e.g., 'inventory_purchases' or 'products')
+                const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
-                listContainer.innerHTML = '';
-                
-                if(querySnapshot.empty) {
-                    listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center italic">No products added for this date yet.</p>';
-                    return;
-                }
+                let totalStockValue = 0;
+                let totalProducts = 0;
 
                 querySnapshot.forEach((doc) => {
-                    const item = doc.data();
-                    const div = document.createElement('div');
-                    div.className = "bg-white p-3 rounded-xl border border-gray-200 shadow-sm";
-                    div.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-800">${item.productName}</h4>
-                                <p class="text-[10px] text-gray-500 font-medium mt-0.5">Supplier: ${item.supplierName}</p>
-                            </div>
-                            <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-1 rounded">Qty: ${item.quantity} ${item.unit}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-100 text-center">
-                            <div>
-                                <span class="block text-[9px] text-blue-500 uppercase">Buy/Unit</span>
-                                <span class="block text-xs font-bold text-gray-800">₹${item.buyPricePerUnit}</span>
-                            </div>
-                            <div>
-                                <span class="block text-[9px] text-green-500 uppercase">Sell/Unit</span>
-                                <span class="block text-xs font-bold text-gray-800">₹${item.sellPricePerUnit}</span>
-                            </div>
-                            <div>
-                                <span class="block text-[9px] text-purple-500 uppercase">Total Buy</span>
-                                <span class="block text-xs font-bold text-blue-800">₹${item.totalPurchasePrice}</span>
-                            </div>
-                        </div>
-                    `;
-                    listContainer.appendChild(div);
+                    const data = doc.data();
+                    
+                    // টোটাল কেনা দাম যোগ করা হচ্ছে
+                    totalStockValue += (parseFloat(data.totalPurchasePrice) || 0);
+                    
+                    // যতগুলো এন্ট্রি/প্রোডাক্ট আছে তা কাউন্ট করা হচ্ছে
+                    totalProducts++; 
                 });
 
+                // UI তে ডেটা বসানো হচ্ছে
+                document.getElementById('totalStockValue').innerText = `₹ ${totalStockValue.toFixed(2)}`;
+                document.getElementById('totalProductsCount').innerText = totalProducts;
+
             } catch (error) {
-                console.error("Error fetching date products:", error);
-                listContainer.innerHTML = '<p class="text-xs text-red-400 text-center">Failed to load data.</p>';
+                console.error("Error loading stats:", error);
+                document.getElementById('totalStockValue').innerText = "₹ 0.00";
+                document.getElementById('totalProductsCount').innerText = "0";
             }
-        };
-
-        // Initialize date and load data on start
-        window.onload = function() {
-            document.getElementById('entryDate').valueAsDate = new Date();
-            loadProductsByDate();
-        };
-    </script>
-
-    <!-- UI Scripts -->
-    <script>
-        function calculateTotals() {
-            const qty = parseFloat(document.getElementById('quantity').value) || 0;
-            const buyUnit = parseFloat(document.getElementById('purchasePriceUnit').value) || 0;
-            const sellUnit = parseFloat(document.getElementById('sellingPriceUnit').value) || 0;
-            const mrpUnit = parseFloat(document.getElementById('mrpUnit').value) || 0;
-            
-            document.getElementById('totalPurchaseDisplay').innerText = `₹ ${(qty * buyUnit).toFixed(2)}`;
-            document.getElementById('totalSellDisplay').innerText = `₹ ${(qty * sellUnit).toFixed(2)}`;
-            document.getElementById('totalMrpDisplay').innerText = `₹ ${(qty * mrpUnit).toFixed(2)}`;
         }
 
-        function clearProductInputs() {
-            document.getElementById('productName').value = '';
-            document.getElementById('quantity').value = '';
-            document.getElementById('purchasePriceUnit').value = '';
-            document.getElementById('sellingPriceUnit').value = '';
-            document.getElementById('mrpUnit').value = '';
-            calculateTotals(); 
-        }
+        // পেজ লোড হওয়ার সাথে সাথে ফাংশনটি কল হবে
+        window.onload = loadDashboardStats;
     </script>
 </body>
 </html>
