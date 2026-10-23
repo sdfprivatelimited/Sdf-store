@@ -15,8 +15,6 @@
             min-height: 100vh; 
             position: relative; 
             box-shadow: 0 0 20px rgba(0,0,0,0.05); 
-            display: flex;
-            flex-direction: column;
         }
         ::-webkit-scrollbar { display: none; }
         .suggestion-scroll::-webkit-scrollbar { display: block; width: 4px; }
@@ -41,7 +39,7 @@
             </div>
         </div>
 
-        <div class="p-4 flex-1 content-area">
+        <div class="p-4 content-area">
             
             <!-- STEP 1: Bill Information -->
             <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-5 relative shadow-sm" id="billInfoSection">
@@ -73,6 +71,9 @@
             <div id="productEntrySection" class="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
                 <h3 class="text-xs font-bold text-gray-700 uppercase mb-3 flex items-center gap-2"><i class="fas fa-box-open text-indigo-500"></i> 2. Add Product</h3>
                 
+                <!-- Hidden Input for Stock Reduction -->
+                <input type="hidden" id="selectedDocId">
+
                 <!-- Smart Search -->
                 <div class="relative mb-4 z-20">
                     <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Search Product</label>
@@ -146,7 +147,8 @@
                     <span class="text-[10px] font-bold text-white bg-emerald-500 px-2 py-1 rounded-md shadow-sm" id="itemCountBadge">0 Items</span>
                 </div>
                 
-                <div id="productList" class="flex flex-col gap-3 mb-4 max-h-60 overflow-y-auto pr-1 suggestion-scroll">
+                <!-- Removed max-height so page scrolls naturally -->
+                <div id="productList" class="flex flex-col gap-3 mb-4">
                     <!-- Added items will appear here -->
                 </div>
 
@@ -189,7 +191,7 @@
     <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
@@ -240,20 +242,24 @@
             if (filtered.length > 0) {
                 box.innerHTML = filtered.map(p => {
                     return `
-                    <div onclick="selectProduct('${p.productName}', '${p.unit}', ${p.buyPricePerUnit}, ${p.sellPricePerUnit}, ${p.mrpPerUnit})" class="p-3 border-b border-gray-50 hover:bg-indigo-50 cursor-pointer transition flex justify-between items-center">
-                        <span class="text-sm font-bold text-gray-800">${p.productName}</span>
+                    <div onclick="selectProduct('${p.id}', '${p.productName}', '${p.unit}', ${p.buyPricePerUnit}, ${p.sellPricePerUnit}, ${p.mrpPerUnit})" class="p-3 border-b border-gray-50 hover:bg-indigo-50 cursor-pointer transition flex justify-between items-center">
+                        <div>
+                            <span class="text-sm font-bold text-gray-800 block">${p.productName}</span>
+                            <span class="text-[9px] text-gray-400 font-semibold">Stock: ${p.quantity || 0} ${p.unit}</span>
+                        </div>
                         <span class="text-[9px] text-gray-500 bg-gray-100 px-2 py-1 rounded">Buy: ₹${p.buyPricePerUnit}</span>
                     </div>
                 `}).join('');
                 box.classList.remove('hidden');
             } else {
-                box.innerHTML = `<div class="p-3 text-xs font-semibold text-gray-400 text-center">No exact match in DB. You can still add manually.</div>`;
+                box.innerHTML = `<div class="p-3 text-xs font-semibold text-gray-400 text-center">No exact match in DB.</div>`;
                 box.classList.remove('hidden');
             }
         };
 
         // 3. Select Product from DB
-        window.selectProduct = function(name, unit, buy, sell, mrp) {
+        window.selectProduct = function(docId, name, unit, buy, sell, mrp) {
+            document.getElementById('selectedDocId').value = docId; // Store ID for stock reduction
             document.getElementById('searchInput').value = name;
             document.getElementById('suggestionBox').classList.add('hidden');
             
@@ -299,6 +305,7 @@
 
         // 6. Clear Entry Fields
         window.clearProductInputs = function() {
+            document.getElementById('selectedDocId').value = '';
             document.getElementById('searchInput').value = '';
             document.getElementById('quantity').value = '';
             document.getElementById('buyPrice').value = '';
@@ -310,6 +317,7 @@
         // 7. Add to Bill Array
         window.addProductToBill = function() {
             const branch = document.getElementById('branchSelect').value;
+            const docId = document.getElementById('selectedDocId').value;
             const name = document.getElementById('searchInput').value.trim();
             const unit = document.getElementById('unitType').value;
             const qty = parseFloat(document.getElementById('quantity').value);
@@ -323,12 +331,16 @@
                 alert("Please enter Product Name, Quantity, and Buy Price!");
                 return;
             }
+            if(!docId) {
+                alert("Please select the product from the search list to properly deduct stock.");
+                return;
+            }
 
             const totalBuy = parseFloat((qty * buyPrice).toFixed(2));
             const totalSell = parseFloat((qty * sellPrice).toFixed(2));
             const totalMrp = parseFloat((qty * mrpPrice).toFixed(2));
 
-            const productObj = { name, unit, qty, buyPrice, sellPrice, mrpPrice, totalBuy, totalSell, totalMrp };
+            const productObj = { docId, name, unit, qty, buyPrice, sellPrice, mrpPrice, totalBuy, totalSell, totalMrp };
             
             window.billItems.push(productObj);
             
@@ -343,7 +355,7 @@
             renderCart();
         };
 
-        // 9. Render Cart
+        // 9. Render Cart (Updated to show Sell Price)
         window.renderCart = function() {
             const listContainer = document.getElementById('productList');
             const summarySection = document.getElementById('billSummarySection');
@@ -361,13 +373,14 @@
             window.billItems.forEach((item, index) => {
                 grandTotal += item.totalBuy;
                 const div = document.createElement('div');
-                div.className = "bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center";
+                div.className = "bg-gray-50 p-3 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm";
                 div.innerHTML = `
                     <div class="flex-1 pr-2">
-                        <h4 class="text-sm font-bold text-gray-800 mb-1">${item.name}</h4>
-                        <div class="flex gap-2 text-[9px] font-semibold text-gray-500 uppercase">
-                            <span class="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">Qty: ${item.qty} ${item.unit}</span>
-                            <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Total: ₹${item.totalBuy.toFixed(2)}</span>
+                        <h4 class="text-sm font-bold text-gray-800 mb-1.5">${item.name}</h4>
+                        <div class="flex flex-wrap gap-2 text-[9px] font-semibold uppercase">
+                            <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded">Qty: ${item.qty} ${item.unit}</span>
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded">Buy: ₹${item.totalBuy.toFixed(2)}</span>
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded">Sell: ₹${item.totalSell.toFixed(2)}</span>
                         </div>
                     </div>
                     <button onclick="deleteProduct(${index})" class="text-red-500 bg-red-100 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-200 transition">
@@ -381,12 +394,12 @@
             document.getElementById('itemCountBadge').innerText = `${window.billItems.length} Items`;
         };
 
-        // 10. Save Full Bill to Firebase
+        // 10. Save Full Bill to Firebase & Decrease Stock
         window.saveFullBill = async function() {
             if(window.billItems.length === 0) return;
             
             const btn = document.getElementById('saveBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-lg"></i> Saving...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-lg"></i> Saving & Updating Stock...';
             btn.disabled = true;
 
             const branchName = document.getElementById('branchSelect').value;
@@ -395,7 +408,27 @@
             const grandTotal = parseFloat(document.getElementById('grandTotal').innerText);
 
             try {
-                // Save Bill Data to a new collection 'branch_bills'
+                // 1. Deduct Stock from Main Store
+                for (const item of window.billItems) {
+                    if (item.docId) {
+                        const productRef = doc(db, "inventory_purchases", item.docId);
+                        const pSnap = await getDoc(productRef);
+                        
+                        if (pSnap.exists()) {
+                            let currentStock = parseFloat(pSnap.data().quantity) || 0;
+                            let newStock = currentStock - item.qty; // Reduce quantity
+                            let newTotalPurchasePrice = newStock * item.buyPrice;
+                            
+                            // Update the main inventory
+                            await updateDoc(productRef, {
+                                quantity: newStock,
+                                totalPurchasePrice: newTotalPurchasePrice
+                            });
+                        }
+                    }
+                }
+
+                // 2. Save Bill Data to 'branch_bills' collection
                 await addDoc(collection(db, "branch_bills"), {
                     branchName: branchName,
                     billNo: billNo,
@@ -405,7 +438,7 @@
                     timestamp: serverTimestamp()
                 });
 
-                alert(`✅ Bill for ${branchName} saved successfully!`);
+                alert(`✅ Bill for ${branchName} saved and Stock updated successfully!`);
                 
                 // Reset everything
                 window.billItems = [];
@@ -414,9 +447,12 @@
                 lockBillInfo(false);
                 document.getElementById('branchSelect').value = '';
                 
+                // Refresh local product list for updated stock
+                window.loadData();
+                
             } catch (error) {
                 console.error("Error saving bill:", error);
-                alert("❌ Problem saving bill!");
+                alert("❌ Problem saving bill or updating stock!");
             }
 
             btn.innerHTML = '<i class="fas fa-save text-lg"></i> Save Complete Bill';
