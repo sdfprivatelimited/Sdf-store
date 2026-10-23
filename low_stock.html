@@ -1,1 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low Stock - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { max-width: 480px; margin: 0 auto; background-color: #fafafa; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        ::-webkit-scrollbar { display: none; }
+        .content-area { padding-bottom: 90px; }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .popup-animate { animation: popIn 0.2s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="bg-orange-500 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-orange-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2">Low Stock <span class="text-[9px] font-semibold bg-orange-600 px-2 py-0.5 rounded-full uppercase border border-orange-400">Alert</span></h1>
+            </div>
+            <div class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold" id="headerCount"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
 
+        <div class="p-4 content-area">
+            <div id="productsContainer" class="flex flex-col gap-3"></div>
+        </div>
+
+        <!-- UPDATE STOCK POPUP -->
+        <div id="stockPopup" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-[360px] rounded-2xl shadow-2xl popup-animate flex flex-col">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50 rounded-t-2xl">
+                    <h2 class="text-sm font-bold text-orange-700 flex items-center gap-2"><i class="fas fa-sync-alt"></i> Update Stock</h2>
+                    <button onclick="closeStockPopup()" class="text-gray-400 hover:text-red-500 transition text-lg"><i class="fas fa-times-circle"></i></button>
+                </div>
+                <div class="p-5">
+                    <input type="hidden" id="updateDocId">
+                    <input type="hidden" id="currentBuyPrice">
+                    
+                    <div class="mb-4 text-center">
+                        <h3 id="updateProductName" class="text-lg font-bold text-gray-800 mb-1">Product Name</h3>
+                        <p class="text-xs text-gray-500">Current Stock: <span id="currentStockDisplay" class="font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md text-sm ml-1">0</span></p>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Add Stock Quantity</label>
+                        <input type="number" id="adjustmentQty" placeholder="Enter quantity to add..." class="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:border-orange-500 text-sm bg-gray-50 text-center font-bold">
+                    </div>
+
+                    <button onclick="submitStockUpdate()" id="btnAddStock" class="w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-emerald-600 transition shadow-md flex justify-center items-center gap-2">
+                        <i class="fas fa-plus-circle"></i> Add Stock
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-orange-500"><i class="fas fa-house-chimney mb-1 text-xl"></i><span class="text-[10px] font-bold">Home</span></a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-orange-500"><i class="fas fa-boxes-stacked mb-1 text-xl"></i><span class="text-[10px] font-bold">Stock</span></a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-orange-500"><i class="fas fa-user-circle mb-1 text-xl"></i><span class="text-[10px] font-bold">Profile</span></a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY", authDomain: "sdf-store-f39bd.firebaseapp.com", projectId: "sdf-store-f39bd", storageBucket: "sdf-store-f39bd.firebasestorage.app", messagingSenderId: "988561141451", appId: "1:988561141451:web:5778ab813d980c3f6df54e" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let allProducts = [];
+
+        window.loadLowStock = async function() {
+            const container = document.getElementById('productsContainer');
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
+                allProducts = []; let html = ""; let count = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let qty = parseFloat(data.quantity) || 0;
+                    
+                    // Filter for Low Stock (1 to 5)
+                    if (qty > 0 && qty <= 5) {
+                        data.id = doc.id; 
+                        allProducts.push(data);
+                        count++;
+
+                        html += `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-orange-200 flex justify-between items-center">
+                            <div class="flex-1 pr-2">
+                                <h3 class="font-bold text-gray-800 text-sm mb-1">${data.productName}</h3>
+                                <span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded">Stock: ${qty} ${data.unit}</span>
+                            </div>
+                            <button onclick="openStockPopup('${data.id}')" class="bg-orange-50 text-orange-600 hover:bg-orange-100 p-2.5 rounded-lg flex flex-col items-center shadow-sm border border-orange-100">
+                                <i class="fas fa-sync-alt text-sm mb-1"></i><span class="text-[8px] font-bold uppercase">Update</span>
+                            </button>
+                        </div>`;
+                    }
+                });
+
+                if (count === 0) html = `<div class="text-center py-10"><h3 class="text-sm font-bold text-gray-600">No Low Stock Items</h3></div>`;
+                container.innerHTML = html;
+                document.getElementById('headerCount').innerText = `${count} Items`;
+            } catch (error) { console.error(error); }
+        };
+
+        window.openStockPopup = function(docId) {
+            const product = allProducts.find(p => p.id === docId);
+            if (!product) return;
+            document.getElementById('updateDocId').value = product.id;
+            document.getElementById('currentBuyPrice').value = product.buyPricePerUnit || 0;
+            document.getElementById('updateProductName').innerText = product.productName;
+            document.getElementById('currentStockDisplay').innerText = `${product.quantity} ${product.unit}`;
+            document.getElementById('adjustmentQty').value = '';
+            window.currentEditingQty = parseFloat(product.quantity) || 0;
+            window.currentEditingUnit = product.unit;
+            document.getElementById('stockPopup').classList.remove('hidden');
+        };
+
+        window.closeStockPopup = function() { document.getElementById('stockPopup').classList.add('hidden'); };
+
+        window.submitStockUpdate = async function() {
+            const docId = document.getElementById('updateDocId').value;
+            const adjQty = parseFloat(document.getElementById('adjustmentQty').value);
+            const buyPrice = parseFloat(document.getElementById('currentBuyPrice').value) || 0;
+
+            if (isNaN(adjQty) || adjQty <= 0) { alert("Enter a valid quantity!"); return; }
+            const newQty = window.currentEditingQty + adjQty;
+            const newTotalValue = parseFloat((newQty * buyPrice).toFixed(2));
+
+            const btn = document.getElementById('btnAddStock');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            
+            try {
+                await updateDoc(doc(db, "inventory_purchases", docId), { quantity: newQty, totalPurchasePrice: newTotalValue });
+                alert(`Stock updated! New Stock: ${newQty} ${window.currentEditingUnit}`);
+                closeStockPopup(); window.loadLowStock();
+            } catch (error) { alert("Failed to update stock."); }
+            btn.innerHTML = '<i class="fas fa-plus-circle"></i> Add Stock';
+        };
+
+        window.onload = loadLowStock;
+    </script>
+</body>
+</html>
