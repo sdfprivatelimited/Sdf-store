@@ -3,123 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>গোডাউন (Main Store) - Dashboard</title>
+    <title>গোডাউন (Main Store) - Modern Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
         .app-container { 
             max-width: 480px; 
             margin: 0 auto; 
-            background-color: #f8fafc; 
+            background-color: #fafafa; 
             min-height: 100vh; 
             display: flex;
             flex-direction: column;
             position: relative; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
         }
         .menu-card {
-            transition: all 0.2s ease-in-out;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .menu-card:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
         }
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Footer spacing */
+        .content-area { padding-bottom: 80px; } 
     </style>
 </head>
 <body>
     <div class="app-container">
 
-        <!-- Header -->
-        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
-            <a href="index.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
-            <div class="text-center">
-                <h1 class="text-xl font-bold tracking-wider">গোডাউন</h1>
-                <p class="text-[10px] font-medium opacity-90 uppercase tracking-widest">(Main Store)</p>
+        <!-- Modern Slim Header -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2">
+                    গোডাউন 
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Main Store</span>
+                </h1>
             </div>
-            <div class="w-6"></div> <!-- Spacer for centering -->
+            <!-- Notification Icon -->
+            <button class="text-indigo-100 hover:text-white transition relative">
+                <i class="fas fa-bell"></i>
+                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                </span>
+            </button>
         </div>
 
-        <div class="p-4 flex-1">
+        <div class="p-4 flex-1 content-area">
             
             <!-- Dashboard Top Cards (Data from Firebase) -->
-            <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 <!-- Total Stock Value Card -->
-                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
-                    <i class="fas fa-wallet absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
-                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট টাকার মাল</h3>
-                    <h2 class="text-xl font-bold" id="totalStockValue">
-                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-[0_8px_15px_-3px_rgba(79,70,229,0.4)] relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
+                    <i class="fas fa-wallet absolute top-4 right-4 text-2xl text-white/20"></i>
+                    <h3 class="text-[10px] font-semibold uppercase text-indigo-100 mb-1 tracking-wider">মোট টাকার মাল</h3>
+                    <h2 class="text-xl font-bold tracking-tight" id="totalStockValue">
+                        <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
 
                 <!-- Total Products Count Card -->
-                <div class="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
-                    <i class="fas fa-boxes absolute -bottom-4 -right-2 text-5xl opacity-20"></i>
-                    <h3 class="text-[10px] font-bold uppercase opacity-90 mb-1">মোট প্রোডাক্ট</h3>
-                    <h2 class="text-2xl font-bold" id="totalProductsCount">
-                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                <div class="bg-gradient-to-br from-teal-400 to-emerald-600 rounded-2xl p-4 text-white shadow-[0_8px_15px_-3px_rgba(16,185,129,0.4)] relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
+                    <i class="fas fa-boxes absolute top-4 right-4 text-2xl text-white/20"></i>
+                    <h3 class="text-[10px] font-semibold uppercase text-emerald-100 mb-1 tracking-wider">মোট প্রোডাক্ট</h3>
+                    <h2 class="text-2xl font-bold tracking-tight" id="totalProductsCount">
+                        <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
             </div>
 
-            <hr class="border-gray-200 mb-5">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 pl-1">Store Management</h3>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Store Management</h3>
+            </div>
 
-            <!-- Action Menu Grid -->
+            <!-- Action Menu Grid (Purchase cards moved to bottom) -->
             <div class="grid grid-cols-2 gap-3">
                 
                 <!-- Add Product -->
-                <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
+                <button onclick="window.location.href='add_product.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-box-open"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Add Product</span>
                 </button>
 
                 <!-- View Products -->
-                <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
-                        <i class="fas fa-list"></i>
+                <button onclick="window.location.href='view_products.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fas fa-list-ul"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">View Products</span>
                 </button>
 
                 <!-- Update Stock -->
-                <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-lg">
+                <button onclick="window.location.href='update_stock.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-sync-alt"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Update Stock</span>
                 </button>
 
-                <!-- Purchase Entry -->
-                <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+                <!-- Transfer to Branch -->
+                <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fas fa-truck-fast"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
+                </button>
+
+                <!-- Purchase Entry (Moved to Bottom) -->
+                <button onclick="window.location.href='purchase_entry.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-cart-plus"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
                 </button>
 
-                <!-- Purchase Views -->
-                <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-lg">
+                <!-- Purchase Views (Moved to Bottom) -->
+                <button onclick="window.location.href='purchase_views.html'" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl shadow-inner">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
                     <span class="text-xs font-bold text-gray-700">Purchase Views</span>
                 </button>
 
-                <!-- Transfer to Branch -->
-                <button onclick="window.location.href='transfer_branch.html'" class="menu-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200">
-                    <div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-lg">
-                        <i class="fas fa-truck-loading"></i>
-                    </div>
-                    <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
-                </button>
-
             </div>
-            
-            <div class="h-10"></div>
         </div>
+
+        <!-- Modern App Footer (Bottom Navigation) -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.03)] z-40 rounded-t-2xl">
+            <div class="flex justify-around items-center py-2">
+                <!-- Home (Active) -->
+                <a href="index.html" class="flex flex-col items-center p-2 text-indigo-600">
+                    <i class="fas fa-house-chimney mb-1 text-lg"></i>
+                    <span class="text-[9px] font-bold tracking-wide">Home</span>
+                </a>
+                
+                <!-- Stock -->
+                <a href="view_products.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-lg"></i>
+                    <span class="text-[9px] font-bold tracking-wide">Stock</span>
+                </a>
+
+                <!-- Floating Center Action Button (Add) -->
+                <div class="relative -top-5">
+                    <button onclick="window.location.href='add_product.html'" class="w-12 h-12 bg-indigo-600 rounded-full flex justify-center items-center text-white text-xl shadow-lg shadow-indigo-500/40 hover:scale-105 transition transform active:scale-95 border-4 border-white">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Reports -->
+                <a href="purchase_views.html" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-chart-pie mb-1 text-lg"></i>
+                    <span class="text-[9px] font-bold tracking-wide">Reports</span>
+                </a>
+
+                <!-- Profile/Settings -->
+                <a href="#" class="flex flex-col items-center p-2 text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-gear mb-1 text-lg"></i>
+                    <span class="text-[9px] font-bold tracking-wide">Settings</span>
+                </a>
+            </div>
+        </div>
+        
     </div>
 
     <!-- Firebase Script for Dashboard Analytics -->
@@ -127,7 +180,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        // আপনার ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
             authDomain: "sdf-store-f39bd.firebaseapp.com",
@@ -140,10 +192,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ডেটাবেস থেকে টোটাল ভ্যালু এবং প্রোডাক্ট কাউন্ট নিয়ে আসা
+        // Fetch data
         async function loadDashboardStats() {
             try {
-                // আপনি যেই কালেকশনে ডেটা সেভ করেন সেটির নাম দিন (e.g., 'inventory_purchases' or 'products')
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
                 let totalStockValue = 0;
@@ -151,16 +202,12 @@
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    
-                    // টোটাল কেনা দাম যোগ করা হচ্ছে
                     totalStockValue += (parseFloat(data.totalPurchasePrice) || 0);
-                    
-                    // যতগুলো এন্ট্রি/প্রোডাক্ট আছে তা কাউন্ট করা হচ্ছে
                     totalProducts++; 
                 });
 
-                // UI তে ডেটা বসানো হচ্ছে
-                document.getElementById('totalStockValue').innerText = `₹ ${totalStockValue.toFixed(2)}`;
+                // Update UI with smooth formatting
+                document.getElementById('totalStockValue').innerHTML = `₹${totalStockValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
                 document.getElementById('totalProductsCount').innerText = totalProducts;
 
             } catch (error) {
@@ -170,7 +217,6 @@
             }
         }
 
-        // পেজ লোড হওয়ার সাথে সাথে ফাংশনটি কল হবে
         window.onload = loadDashboardStats;
     </script>
 </body>
