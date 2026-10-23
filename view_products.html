@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Products - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            min-height: 100vh; 
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+        }
+        ::-webkit-scrollbar { display: none; }
+        .content-area { padding-bottom: 90px; } 
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Modern Slim Header -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2">
+                    Product Stock 
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">View All</span>
+                </h1>
+            </div>
+            <!-- Total count badge -->
+            <div class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold" id="headerCount">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+
+        <div class="p-4 flex-1 content-area">
+            
+            <!-- Search / Filter (Optional placeholder for future use) -->
+            <div class="relative mb-5">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search by product name..." class="w-full bg-white border border-gray-200 p-3 pl-9 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm shadow-sm transition" onkeyup="filterProducts()">
+            </div>
+
+            <!-- Products Container -->
+            <div id="productsContainer" class="flex flex-col gap-4">
+                <!-- Loading State -->
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <i class="fas fa-circle-notch fa-spin text-3xl mb-3 text-indigo-500"></i>
+                    <p class="text-sm font-semibold text-gray-500">Loading products from database...</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Clean Footer -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Home</span>
+                </a>
+                
+                <a href="view_products.html" class="flex flex-col items-center text-indigo-600 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Stock</span>
+                </a>
+
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Profile</span>
+                </a>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Firebase Setup & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allProducts = []; // Store products for search filtering
+
+        // Fetch and display products
+        window.loadProducts = async function() {
+            const container = document.getElementById('productsContainer');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
+                allProducts = []; // reset
+                let html = "";
+                let count = 0;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id; // Store document ID for edit/delete
+                    allProducts.push(data);
+                    count++;
+
+                    // Determine if stock is low or out
+                    let stockBadgeClass = "bg-indigo-100 text-indigo-700";
+                    if (data.quantity <= 0) stockBadgeClass = "bg-red-100 text-red-700 border border-red-200";
+                    else if (data.quantity <= 5) stockBadgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
+
+                    html += `
+                    <div class="product-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 relative">
+                        <!-- Top Row: Name & Date & Badge -->
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-sm productNameText">${data.productName}</h3>
+                                <p class="text-[9px] font-semibold text-gray-400 mt-0.5"><i class="far fa-calendar-alt"></i> ${data.date || 'N/A'}</p>
+                            </div>
+                            <span class="${stockBadgeClass} text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                                Qty: ${data.quantity} ${data.unit}
+                            </span>
+                        </div>
+
+                        <!-- Middle Row: Prices -->
+                        <div class="grid grid-cols-3 gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3 text-center">
+                            <div>
+                                <span class="block text-[8px] font-bold text-blue-500 uppercase">Buy Price</span>
+                                <span class="block text-xs font-bold text-gray-800">₹${data.buyPricePerUnit || 0}</span>
+                            </div>
+                            <div class="border-l border-r border-gray-200">
+                                <span class="block text-[8px] font-bold text-green-500 uppercase">Sell Price</span>
+                                <span class="block text-xs font-bold text-gray-800">₹${data.sellPricePerUnit || 0}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[8px] font-bold text-purple-500 uppercase">MRP</span>
+                                <span class="block text-xs font-bold text-gray-800">₹${data.mrpPerUnit || 0}</span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Row: Total & Action Buttons -->
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-bold text-gray-500 uppercase">Total Buy Value</span>
+                                <p class="text-sm font-bold text-indigo-700">₹${data.totalPurchasePrice || 0}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editProduct('${data.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="deleteProduct('${data.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                if (count === 0) {
+                    html = `
+                    <div class="text-center py-10">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300 text-2xl">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-600">No Products Found</h3>
+                        <p class="text-xs text-gray-400 mt-1">Add some products to see them here.</p>
+                        <button onclick="window.location.href='add_product.html'" class="mt-4 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold">Add New Product</button>
+                    </div>`;
+                }
+
+                container.innerHTML = html;
+                document.getElementById('headerCount').innerText = `${count} Items`;
+
+            } catch (error) {
+                console.error("Error fetching products: ", error);
+                container.innerHTML = `<p class="text-center text-red-500 text-sm mt-5"><i class="fas fa-exclamation-triangle"></i> Failed to load data.</p>`;
+                document.getElementById('headerCount').innerText = `Error`;
+            }
+        };
+
+        // Edit Product function (Redirects to add_product page with ID)
+        window.editProduct = function(docId) {
+            // Sending the user to add_product.html and passing the document ID via URL
+            window.location.href = `add_product.html?edit_id=${docId}`;
+        };
+
+        // Delete Product function
+        window.deleteProduct = async function(docId) {
+            const confirmDelete = confirm("Are you sure you want to delete this product? This action cannot be undone.");
+            if (confirmDelete) {
+                try {
+                    await deleteDoc(doc(db, "inventory_purchases", docId));
+                    alert("✅ Product deleted successfully!");
+                    // Reload the list automatically
+                    window.loadProducts();
+                } catch (error) {
+                    console.error("Error deleting product: ", error);
+                    alert("❌ Failed to delete product. Please try again.");
+                }
+            }
+        };
+
+        // Initial Load
+        window.onload = function() {
+            window.loadProducts();
+        };
+
+        // Search Filter Logic
+        window.filterProducts = function() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const cards = document.getElementsByClassName("product-card");
+            const names = document.getElementsByClassName("productNameText");
+
+            for (let i = 0; i < cards.length; i++) {
+                let nameValue = names[i].innerText || names[i].textContent;
+                if (nameValue.toLowerCase().indexOf(input) > -1) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        };
+    </script>
+</body>
+</html>
