@@ -193,7 +193,6 @@
         // Fetch data
         async function loadDashboardStats() {
             try {
-                // Change 'inventory_purchases' to your actual collection name where products are saved
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
                 let totalStockValue = 0;
