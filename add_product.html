@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            min-height: 100vh; 
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+        }
+        ::-webkit-scrollbar { display: none; }
+        .content-area { padding-bottom: 90px; } 
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Modern Slim Header -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2">
+                    Add Product 
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Main Store</span>
+                </h1>
+            </div>
+        </div>
+
+        <div class="p-4 flex-1 content-area">
+            
+            <!-- Product Details Section -->
+            <div class="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <i class="fas fa-box text-indigo-500"></i> Product Information
+                </h3>
+                
+                <div class="mb-4">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Product Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="productName" placeholder="Enter product name..." class="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-gray-50 transition">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Select Unit <span class="text-red-500">*</span></label>
+                        <select id="unitType" class="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-gray-50 transition" onchange="updateQuantityPlaceholder()">
+                            <option value="Kg">Kg (কিলোগ্রাম)</option>
+                            <option value="Gram">Gram (গ্রাম)</option>
+                            <option value="Box">Box (বাক্স)</option>
+                            <option value="Piece">Piece (পিস)</option>
+                            <option value="Pack">Pack (প্যাকেট)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase mb-1 block" id="qtyLabel">Quantity (Kg) <span class="text-red-500">*</span></label>
+                        <input type="number" id="quantity" placeholder="Enter Kg" class="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-gray-50 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Details Section -->
+            <div class="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-6">
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <i class="fas fa-tags text-indigo-500"></i> Price Details (Per Unit)
+                </h3>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Buy Price -->
+                    <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-center">
+                        <label class="text-[9px] font-bold text-blue-700 uppercase block mb-1">কেনা দাম <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                            <input type="number" id="buyPrice" placeholder="Buy" class="w-full border border-blue-300 p-2 pl-5 rounded-lg focus:outline-none focus:border-blue-500 text-xs bg-white text-center font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- Sell Price -->
+                    <div class="bg-green-50 p-2.5 rounded-xl border border-green-200 text-center">
+                        <label class="text-[9px] font-bold text-green-700 uppercase block mb-1">বিক্রি দাম <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                            <input type="number" id="sellPrice" placeholder="Sell" class="w-full border border-green-300 p-2 pl-5 rounded-lg focus:outline-none focus:border-green-500 text-xs bg-white text-center font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- MRP -->
+                    <div class="bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-center">
+                        <label class="text-[9px] font-bold text-purple-700 uppercase block mb-1">MRP (Optional)</label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                            <input type="number" id="mrpPrice" placeholder="MRP" class="w-full border border-purple-300 p-2 pl-5 rounded-lg focus:outline-none focus:border-purple-500 text-xs bg-white text-center font-semibold">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <button onclick="saveProduct()" id="saveBtn" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold py-4 rounded-xl shadow-[0_4px_15px_-3px_rgba(79,70,229,0.4)] transform transition hover:scale-[1.02] active:scale-95 flex justify-center items-center gap-2">
+                <i class="fas fa-plus-circle text-lg"></i> <span>Add to Database</span>
+            </button>
+            
+        </div>
+
+        <!-- Clean Footer -->
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Home</span>
+                </a>
+                
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Stock</span>
+                </a>
+
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold tracking-wide">Profile</span>
+                </a>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Firebase Setup & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to update placeholder based on unit selection
+        window.updateQuantityPlaceholder = function() {
+            const unit = document.getElementById('unitType').value;
+            const qtyInput = document.getElementById('quantity');
+            const qtyLabel = document.getElementById('qtyLabel');
+
+            qtyLabel.innerHTML = `Quantity (${unit}) <span class="text-red-500">*</span>`;
+            qtyInput.placeholder = `Enter ${unit}`;
+        }
+
+        // Initialize placeholder on load
+        window.onload = function() {
+            updateQuantityPlaceholder();
+        }
+
+        // Save Data to Firebase
+        window.saveProduct = async function() {
+            const name = document.getElementById('productName').value.trim();
+            const unit = document.getElementById('unitType').value;
+            const qty = parseFloat(document.getElementById('quantity').value);
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            const mrpPrice = parseFloat(document.getElementById('mrpPrice').value) || 0;
+
+            // Validation
+            if (!name) { alert("Please enter Product Name!"); return; }
+            if (!qty || isNaN(qty)) { alert("Please enter valid Quantity!"); return; }
+            if (!buyPrice || isNaN(buyPrice)) { alert("Please enter Buy Price (কেনা দাম)!"); return; }
+            if (!sellPrice || isNaN(sellPrice)) { alert("Please enter Sell Price (বিক্রি দাম)!"); return; }
+
+            const btn = document.getElementById('saveBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-lg"></i> <span>Saving...</span>';
+            btn.disabled = true;
+
+            try {
+                // Calculate Total Purchase Value
+                const totalPurchasePrice = parseFloat((qty * buyPrice).toFixed(2));
+
+                await addDoc(collection(db, "inventory_purchases"), {
+                    productName: name,
+                    unit: unit,
+                    quantity: qty,
+                    buyPricePerUnit: buyPrice,
+                    sellPricePerUnit: sellPrice,
+                    mrpPerUnit: mrpPrice,
+                    totalPurchasePrice: totalPurchasePrice,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: serverTimestamp()
+                });
+
+                alert("✅ Product successfully added!");
+                
+                // Clear the form
+                document.getElementById('productName').value = '';
+                document.getElementById('quantity').value = '';
+                document.getElementById('buyPrice').value = '';
+                document.getElementById('sellPrice').value = '';
+                document.getElementById('mrpPrice').value = '';
+
+            } catch (error) {
+                console.error("Error saving product: ", error);
+                alert("❌ Failed to add product. Please try again.");
+            }
+
+            // Reset button
+            btn.innerHTML = '<i class="fas fa-plus-circle text-lg"></i> <span>Add to Database</span>';
+            btn.disabled = false;
+        };
+    </script>
+</body>
+</html>
