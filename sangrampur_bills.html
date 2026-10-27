@@ -11,8 +11,6 @@
         .app-container { max-width: 480px; margin: 0 auto; background-color: #fafafa; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         ::-webkit-scrollbar { display: none; }
         .content-area { padding-bottom: 90px; flex: 1; }
-        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .popup-animate { animation: popIn 0.2s ease-out forwards; }
     </style>
 </head>
 <body>
@@ -34,7 +32,6 @@
             
             <!-- Filters -->
             <div class="bg-white p-4 rounded-2xl shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
-                <!-- Date to Date -->
                 <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="text-[9px] font-bold text-gray-500 uppercase mb-1 block">From Date</label>
@@ -45,7 +42,6 @@
                         <input type="date" id="endDate" class="w-full border border-gray-200 p-2 rounded-lg text-xs bg-gray-50 outline-none focus:border-indigo-500 font-bold text-gray-700" onchange="filterBills()">
                     </div>
                 </div>
-                <!-- Search -->
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" id="searchBill" placeholder="Search by Bill No..." class="w-full bg-gray-50 border border-gray-200 p-2.5 pl-9 rounded-xl focus:outline-none focus:border-indigo-500 text-sm font-semibold transition" onkeyup="filterBills()">
@@ -62,33 +58,6 @@
 
         </div>
 
-        <!-- BILL DETAILS POPUP MODAL -->
-        <div id="billModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl popup-animate flex flex-col max-h-[85vh]">
-                
-                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50 rounded-t-2xl">
-                    <div>
-                        <h2 class="text-sm font-bold text-indigo-800"><i class="fas fa-receipt mr-1"></i> Bill Details</h2>
-                        <p class="text-[10px] text-gray-500 font-semibold mt-0.5" id="modalBillDate">Date: -</p>
-                    </div>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition text-2xl"><i class="fas fa-times-circle"></i></button>
-                </div>
-
-                <!-- Items List (Scrollable) -->
-                <div class="p-4 overflow-y-auto bg-gray-50 flex-1">
-                    <div id="modalItemsList" class="flex flex-col gap-3">
-                        <!-- Items injected here -->
-                    </div>
-                </div>
-
-                <!-- Grand Total Footer -->
-                <div class="p-4 border-t border-gray-200 bg-white rounded-b-2xl flex justify-between items-center">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Grand Total (Buy)</span>
-                    <span class="text-lg font-black text-indigo-700" id="modalGrandTotal">₹0.00</span>
-                </div>
-            </div>
-        </div>
-
         <!-- Footer -->
         <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
             <div class="flex justify-between items-center px-10 py-3">
@@ -99,31 +68,21 @@
         </div>
     </div>
 
-    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY", 
-            authDomain: "sdf-store-f39bd.firebaseapp.com", 
-            projectId: "sdf-store-f39bd", 
-            storageBucket: "sdf-store-f39bd.firebasestorage.app", 
-            messagingSenderId: "988561141451", 
-            appId: "1:988561141451:web:5778ab813d980c3f6df54e" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY", authDomain: "sdf-store-f39bd.firebaseapp.com", projectId: "sdf-store-f39bd", storageBucket: "sdf-store-f39bd.firebasestorage.app", messagingSenderId: "988561141451", appId: "1:988561141451:web:5778ab813d980c3f6df54e" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
         let allBills = [];
 
-        // 1. Fetch Bills
         window.loadBills = async function() {
             const listContainer = document.getElementById('billsList');
             const badge = document.getElementById('billCountBadge');
             
             try {
-                // Fetch bills for Sangrampur branch
                 const q = query(collection(db, "branch_bills"), where("branchName", "==", "Sangrampur"));
                 const querySnapshot = await getDocs(q);
                 
@@ -134,7 +93,6 @@
                     allBills.push(data);
                 });
 
-                // Sort by date safely
                 allBills.sort((a, b) => {
                     let dateA = a.date ? new Date(a.date) : new Date(0);
                     let dateB = b.date ? new Date(b.date) : new Date(0);
@@ -144,34 +102,17 @@
                 window.renderBillsList(allBills);
                 
             } catch (error) {
-                console.error("Error fetching bills:", error);
-                
-                // Show the EXACT error message on screen
-                listContainer.innerHTML = `
-                <div class="text-center py-10 px-4">
-                    <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-3 block"></i>
-                    <h3 class="text-sm font-bold text-red-600 mb-2">Error Loading Data</h3>
-                    <div class="bg-red-50 text-red-700 text-[10px] p-3 rounded-lg border border-red-200 break-words text-left font-mono">
-                        ${error.message}
-                    </div>
-                </div>`;
+                listContainer.innerHTML = `<div class="text-center py-10 px-4"><p class="text-red-500 font-bold">${error.message}</p></div>`;
                 badge.innerText = `Error`;
             }
         };
 
-        // 2. Render Bills to UI
         window.renderBillsList = function(billsArray) {
             const listContainer = document.getElementById('billsList');
             document.getElementById('billCountBadge').innerText = `${billsArray.length} Bills`;
 
             if (billsArray.length === 0) {
-                listContainer.innerHTML = `
-                <div class="text-center py-10">
-                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300 text-2xl">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-gray-500">No Bills Found</h3>
-                </div>`;
+                listContainer.innerHTML = `<div class="text-center py-10"><h3 class="text-sm font-bold text-gray-500">No Bills Found</h3></div>`;
                 return;
             }
 
@@ -180,8 +121,9 @@
                 let itemsCount = bill.items ? bill.items.length : 0;
                 let displayDate = bill.date ? new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
 
+                // 👉 CLICK KORLE NATUN PAGE KHULBE
                 html += `
-                <div onclick="openBillModalById('${bill.id}')" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:border-indigo-300 transition">
+                <div onclick="window.location.href='bill_details.html?id=${bill.id}'" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:border-indigo-300 transition">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <h3 class="font-bold text-indigo-900 text-sm">Bill No: ${bill.billNo || 'N/A'}</h3>
@@ -191,7 +133,7 @@
                     </div>
                     <div class="flex justify-between items-center border-t border-gray-50 pt-2 mt-2">
                         <span class="text-[10px] font-bold text-gray-400 uppercase">${itemsCount} Products Included</span>
-                        <span class="text-[10px] font-bold text-indigo-500 flex items-center gap-1">View Details <i class="fas fa-chevron-right"></i></span>
+                        <span class="text-[10px] font-bold text-indigo-500 flex items-center gap-1">Open Full Bill <i class="fas fa-chevron-right"></i></span>
                     </div>
                 </div>
                 `;
@@ -199,7 +141,6 @@
             listContainer.innerHTML = html;
         };
 
-        // 3. Filter Logic (Date & Search)
         window.filterBills = function() {
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
@@ -207,67 +148,16 @@
 
             const filtered = allBills.filter(bill => {
                 let matchesSearch = (bill.billNo || '').toLowerCase().includes(search);
-                
                 let matchesDate = true;
-                if (start && end) {
-                    matchesDate = (bill.date >= start && bill.date <= end);
-                } else if (start) {
-                    matchesDate = (bill.date >= start);
-                } else if (end) {
-                    matchesDate = (bill.date <= end);
-                }
-
+                if (start && end) matchesDate = (bill.date >= start && bill.date <= end);
+                else if (start) matchesDate = (bill.date >= start);
+                else if (end) matchesDate = (bill.date <= end);
                 return matchesSearch && matchesDate;
             });
-
             window.renderBillsList(filtered);
         };
 
-        // 4. Modal Logic
-        window.openBillModalById = function(id) {
-            const bill = allBills.find(b => b.id === id);
-            if (!bill) return;
-
-            document.getElementById('modalBillDate').innerText = `Date: ${bill.date ? new Date(bill.date).toLocaleDateString('en-GB') : 'N/A'}`;
-            document.getElementById('modalGrandTotal').innerText = `₹${(parseFloat(bill.grandTotalBuy) || 0).toFixed(2)}`;
-
-            const itemsContainer = document.getElementById('modalItemsList');
-            let itemsHtml = "";
-
-            if (bill.items && bill.items.length > 0) {
-                bill.items.forEach(item => {
-                    itemsHtml += `
-                    <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
-                        <div class="flex-1 pr-2">
-                            <h4 class="text-sm font-bold text-gray-800 mb-1.5">${item.name || 'Unknown Item'}</h4>
-                            <div class="flex flex-wrap gap-2 text-[9px] font-semibold uppercase">
-                                <span class="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">Qty: ${item.qty} ${item.unit}</span>
-                                <span class="bg-green-50 text-green-600 px-1.5 py-0.5 rounded border border-green-100">Sell: ₹${item.sellPrice || 0}</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="block text-[8px] font-bold text-gray-400 uppercase">Total Buy</span>
-                            <span class="text-sm font-black text-indigo-700">₹${(parseFloat(item.totalBuy) || 0).toFixed(2)}</span>
-                        </div>
-                    </div>
-                    `;
-                });
-            } else {
-                itemsHtml = `<p class="text-center text-xs text-gray-400 font-bold py-5">No items found in this bill.</p>`;
-            }
-
-            itemsContainer.innerHTML = itemsHtml;
-            document.getElementById('billModal').classList.remove('hidden');
-        };
-
-        window.closeModal = function() {
-            document.getElementById('billModal').classList.add('hidden');
-        };
-
-        // Start fetching on page load
-        window.onload = function() {
-            window.loadBills();
-        };
+        window.onload = function() { window.loadBills(); };
     </script>
 </body>
 </html>
