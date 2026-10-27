@@ -7,23 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-        .app-container { max-width: 480px; margin: 0 auto; background-color: #fafafa; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        body { background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         ::-webkit-scrollbar { display: none; }
+        .sheet-table { width: 100%; border-collapse: collapse; }
+        .sheet-table th, .sheet-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+        .sheet-table th { background-color: #f1f5f9; font-size: 11px; font-weight: bold; color: #475569; }
+        .sheet-table td { font-size: 12px; color: #334155; }
     </style>
 </head>
 <body>
     <div class="app-container">
 
-        <!-- Header (with Back button) -->
-        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
-            <div class="flex items-center gap-3">
-                <button onclick="history.back()" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></button>
-                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">
-                    Bill Details
-                </h1>
-            </div>
-            <button onclick="window.print()" class="text-indigo-100 hover:text-white transition"><i class="fas fa-print"></i></button>
+        <!-- Header -->
+        <div class="bg-indigo-600 text-white py-4 px-4 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <button onclick="history.back()" class="text-xl focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="text-lg font-bold tracking-wider uppercase">BILL DETAILS</h1>
+            <div class="w-6"></div> <!-- Spacer for centering -->
         </div>
 
         <div class="p-4 flex-1">
@@ -37,36 +37,65 @@
             <!-- Bill Content -->
             <div id="billContent" class="hidden">
                 
-                <!-- Bill Top Info -->
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4">
-                    <div class="flex justify-between items-start border-b border-gray-100 pb-3 mb-3">
+                <!-- Info Card -->
+                <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 mb-5">
+                    <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
                         <div>
-                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Branch Name</p>
-                            <h2 class="text-lg font-black text-indigo-900" id="b_branch">---</h2>
+                            <span class="font-bold text-indigo-900">Branch:</span> 
+                            <span class="font-semibold text-gray-700" id="b_branch">---</span>
                         </div>
                         <div class="text-right">
-                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Bill Date</p>
-                            <h3 class="text-sm font-bold text-gray-800" id="b_date">---</h3>
+                            <span class="font-bold text-indigo-900">Date:</span> 
+                            <span class="font-semibold text-gray-700" id="b_date">---</span>
+                        </div>
+                        <div>
+                            <span class="font-bold text-indigo-900">Bill No:</span> 
+                            <span class="font-semibold text-gray-700" id="b_no">---</span>
                         </div>
                     </div>
-                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 flex justify-between items-center">
-                        <span class="text-xs font-bold text-indigo-800 uppercase">Bill No / Challan:</span>
-                        <span class="text-sm font-black text-indigo-900" id="b_no">---</span>
+                </div>
+
+                <!-- Items Table -->
+                <h3 class="text-sm font-bold text-indigo-900 uppercase mb-2 flex items-center gap-2"><i class="fas fa-table text-indigo-500"></i> ITEMS SHEET</h3>
+                
+                <div class="overflow-x-auto rounded-lg border border-gray-200 mb-5 shadow-sm">
+                    <table class="sheet-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center w-8">#</th>
+                                <th>Item Name</th>
+                                <th class="text-center">Qty</th>
+                                <th>Prices(B/S/M)</th>
+                                <th class="text-right">Total Buy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Items injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals Card -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                        <span class="text-sm font-bold text-gray-600">Total MRP Value:</span>
+                        <span class="text-sm font-bold text-gray-800">₹ <span id="t_mrp">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                        <span class="text-sm font-bold text-green-600">Total Sell Value:</span>
+                        <span class="text-sm font-bold text-green-700">₹ <span id="t_sell">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-lg font-extrabold text-indigo-900">Grand Total (Buy):</span>
+                        <span class="text-xl font-black text-indigo-700">₹ <span id="t_buy">0.00</span></span>
                     </div>
                 </div>
 
-                <!-- Products List -->
-                <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 px-1"><i class="fas fa-box-open text-indigo-500 mr-1"></i> Transferred Items</h3>
-                
-                <div id="itemsContainer" class="flex flex-col gap-3 mb-6">
-                    <!-- Items will be injected here -->
-                </div>
-
-                <!-- Grand Total -->
-                <div class="bg-indigo-600 p-5 rounded-2xl shadow-lg text-white flex justify-between items-center mb-6">
-                    <span class="text-sm font-bold uppercase tracking-wider">Grand Total (Buy)</span>
-                    <span class="text-2xl font-black">₹ <span id="b_total">0.00</span></span>
-                </div>
+                <!-- Action Button -->
+                <button onclick="window.print()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-md transform transition hover:bg-blue-700 flex justify-center items-center gap-2 text-lg">
+                    <i class="fas fa-receipt"></i> Print / Generate Bill
+                </button>
+                <div class="h-10"></div>
             </div>
 
         </div>
@@ -89,7 +118,6 @@
         const db = getFirestore(app);
 
         window.loadBillDetails = async function() {
-            // Get Bill ID from URL (e.g. ?id=ABC123XYZ)
             const urlParams = new URLSearchParams(window.location.search);
             const billId = urlParams.get('id');
 
@@ -105,38 +133,53 @@
                 if (docSnap.exists()) {
                     const bill = docSnap.data();
                     
-                    // Set Top Info
+                    // Set Info Card
                     document.getElementById('b_branch').innerText = bill.branchName || 'N/A';
-                    document.getElementById('b_date').innerText = bill.date ? new Date(bill.date).toLocaleDateString('en-GB') : 'N/A';
+                    document.getElementById('b_date').innerText = bill.date ? new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
                     document.getElementById('b_no').innerText = bill.billNo || 'N/A';
-                    document.getElementById('b_total').innerText = (parseFloat(bill.grandTotalBuy) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
-
-                    // Render Items
-                    const itemsContainer = document.getElementById('itemsContainer');
+                    
+                    // Render Table Items & Calculate extra totals
+                    const tbody = document.getElementById('itemsTableBody');
                     let itemsHtml = "";
+                    
+                    let calcTotalSell = 0;
+                    let calcTotalMrp = 0;
+                    let calcTotalBuy = parseFloat(bill.grandTotalBuy) || 0;
 
                     if (bill.items && bill.items.length > 0) {
                         bill.items.forEach((item, index) => {
+                            let itemBuy = parseFloat(item.buyPrice) || 0;
+                            let itemSell = parseFloat(item.sellPrice) || 0;
+                            let itemMrp = parseFloat(item.mrpPrice) || 0;
+                            let qty = parseFloat(item.qty) || 0;
+                            
+                            calcTotalSell += (itemSell * qty);
+                            calcTotalMrp += (itemMrp * qty);
+
                             itemsHtml += `
-                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="text-sm font-bold text-gray-800">${index + 1}. ${item.name || 'Item'}</h4>
-                                    <span class="text-sm font-black text-indigo-700">₹${(parseFloat(item.totalBuy) || 0).toFixed(2)}</span>
-                                </div>
-                                
-                                <div class="flex flex-wrap gap-2 text-[10px] font-semibold uppercase mt-2 border-t border-gray-50 pt-2">
-                                    <span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100">Qty: ${item.qty} ${item.unit}</span>
-                                    <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">Buy: ₹${item.buyPrice || 0}</span>
-                                    <span class="bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100">Sell: ₹${item.sellPrice || 0}</span>
-                                </div>
-                            </div>
+                            <tr>
+                                <td class="text-center font-semibold text-gray-500">${index + 1}</td>
+                                <td class="font-bold text-gray-800">${item.name || 'Item'}</td>
+                                <td class="text-center font-bold text-indigo-600">${qty} ${item.unit}</td>
+                                <td class="text-[10px] leading-tight font-semibold text-gray-600">
+                                    <span class="text-blue-600">B: ₹${itemBuy}</span><br>
+                                    <span class="text-green-600">S: ₹${itemSell}</span><br>
+                                    <span class="text-purple-600">M: ₹${itemMrp}</span>
+                                </td>
+                                <td class="text-right font-bold text-gray-800">₹${(parseFloat(item.totalBuy) || 0).toFixed(2)}</td>
+                            </tr>
                             `;
                         });
                     } else {
-                        itemsHtml = `<p class="text-center text-xs text-gray-400 font-bold py-5">No items found in this bill.</p>`;
+                        itemsHtml = `<tr><td colspan="5" class="text-center py-4 text-gray-400 font-semibold">No items in this bill</td></tr>`;
                     }
 
-                    itemsContainer.innerHTML = itemsHtml;
+                    tbody.innerHTML = itemsHtml;
+
+                    // Set Totals
+                    document.getElementById('t_buy').innerText = calcTotalBuy.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                    document.getElementById('t_sell').innerText = calcTotalSell.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                    document.getElementById('t_mrp').innerText = calcTotalMrp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
                     
                     // Show Content, Hide Loader
                     document.getElementById('loadingIndicator').classList.add('hidden');
@@ -146,7 +189,7 @@
                     document.getElementById('loadingIndicator').innerHTML = `<p class="text-red-500 font-bold">Bill not found in database!</p>`;
                 }
             } catch (error) {
-                document.getElementById('loadingIndicator').innerHTML = `<p class="text-red-500 font-bold">Error loading bill: ${error.message}</p>`;
+                document.getElementById('loadingIndicator').innerHTML = `<p class="text-red-500 font-bold text-xs p-4">${error.message}</p>`;
             }
         };
 
