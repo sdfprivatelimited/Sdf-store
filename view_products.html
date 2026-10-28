@@ -189,6 +189,11 @@
                     if (data.quantity <= 0) stockBadgeClass = "bg-red-100 text-red-700 border border-red-200";
                     else if (data.quantity <= 5) stockBadgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
 
+                    // Calculate Total Sell Value (Qty x Sell Price)
+                    let qty = parseFloat(data.quantity) || 0;
+                    let sellPrice = parseFloat(data.sellPricePerUnit) || 0;
+                    let totalSellValue = (qty * sellPrice).toFixed(2);
+
                     html += `
                     <div class="product-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 relative">
                         <div class="flex justify-between items-start mb-3">
@@ -216,19 +221,24 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-3">
                             <div>
-                                <span class="text-[9px] font-bold text-gray-500 uppercase">Total Buy Value</span>
-                                <p class="text-sm font-bold text-indigo-700">₹${data.totalPurchasePrice || 0}</p>
+                                <span class="text-[9px] font-bold text-blue-500 uppercase">Total Buy Value</span>
+                                <p class="text-sm font-bold text-blue-700">₹${data.totalPurchasePrice || 0}</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="openEditPopup('${data.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button onclick="deleteProduct('${data.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
+                            <div class="text-right">
+                                <span class="text-[9px] font-bold text-green-500 uppercase">Total Sell Value</span>
+                                <p class="text-sm font-bold text-green-700">₹${totalSellValue}</p>
                             </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 border-t border-gray-50 pt-3">
+                            <button onclick="openEditPopup('${data.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button type="button" onclick="deleteProduct('${data.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1 z-10 cursor-pointer">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                     `;
@@ -338,12 +348,13 @@
 
         // --- DELETE LOGIC ---
         window.deleteProduct = async function(docId) {
-            const confirmDelete = confirm("Are you sure you want to delete this product? This action cannot be undone.");
+            // event.stopPropagation() was not working properly, using normal confirm inside
+            const confirmDelete = window.confirm("Are you sure you want to delete this product? This action cannot be undone.");
             if (confirmDelete) {
                 try {
                     await deleteDoc(doc(db, "inventory_purchases", docId));
                     alert("✅ Product deleted successfully!");
-                    window.loadProducts();
+                    window.loadProducts(); // Reload the UI automatically
                 } catch (error) {
                     console.error("Error deleting product: ", error);
                     alert("❌ Failed to delete product.");
