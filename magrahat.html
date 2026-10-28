@@ -3,217 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magrahat Branch - SDF STORE</title>
+    <title>Magrahat Menu - SDF STORE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; }
-        .app-container { 
-            max-width: 480px; 
-            margin: 0 auto; 
-            background-color: #ffffff; 
-            min-height: 100vh; 
-            display: flex;
-            flex-direction: column;
-            position: relative; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-        }
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { max-width: 480px; margin: 0 auto; background-color: #fafafa; height: 100dvh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); overflow: hidden; }
+        .content-area { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+        .menu-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; }
+        .menu-card:active { transform: scale(0.95); }
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
     <div class="app-container">
-
-        <!-- Header -->
-        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-30">
-            <a href="index.html" class="text-xl focus:outline-none hover:text-indigo-200"><i class="fas fa-arrow-left"></i></a>
-            <h1 class="text-xl font-bold tracking-wider uppercase" id="branchTitle">MAGRAHAT</h1>
-            <div class="w-6"></div>
+        <!-- Header (Fixed) -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md z-30 rounded-b-lg shrink-0">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">Magrahat <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Branch</span></h1>
+            </div>
+            <button class="text-indigo-100 hover:text-white transition relative text-lg"><i class="fas fa-store"></i></button>
         </div>
 
-        <div class="p-4 flex-1">
-            
-            <!-- Monthly Collection Display -->
-            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 mb-5 shadow-sm relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-10">
-                    <i class="fas fa-calendar-check text-6xl text-indigo-900"></i>
-                </div>
-                <p class="text-xs font-bold text-indigo-800 uppercase mb-3">This Month's Collection</p>
-                
-                <div class="flex justify-between items-end mb-2">
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold"><i class="fas fa-money-bill-wave text-green-500"></i> Cash</p>
-                        <h3 class="text-lg font-bold text-green-700">₹ <span id="monthCash">0.00</span></h3>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-gray-500 font-bold"><i class="fas fa-mobile-alt text-blue-500"></i> Online</p>
-                        <h3 class="text-lg font-bold text-blue-700">₹ <span id="monthOnline">0.00</span></h3>
-                    </div>
-                </div>
-                
-                <div class="border-t border-indigo-200 pt-2 mt-2">
-                    <p class="text-[10px] text-gray-500 font-bold uppercase">Total Collection (This Month)</p>
-                    <h2 class="text-2xl font-bold text-indigo-700">₹ <span id="monthTotal">0.00</span></h2>
-                </div>
+        <!-- Scrollable Content Area -->
+        <div class="p-4 content-area">
+            <!-- Dashboard Summary Card (Green Color - Total Due) -->
+            <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
+                <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
+                <i class="fas fa-hand-holding-dollar absolute top-1/2 transform -translate-y-1/2 right-4 text-5xl text-white/20"></i>
+                <h3 class="text-[10px] font-bold uppercase text-green-100 mb-1 tracking-wider">মোট বাকি (Total Due)</h3>
+                <h2 class="text-4xl font-black tracking-tight flex items-center gap-2" id="totalDueValue"><i class="fas fa-circle-notch fa-spin text-lg"></i></h2>
+                <p class="text-[9px] font-semibold text-green-100 mt-2 bg-black/10 inline-block px-2 py-0.5 rounded">Transferred - Paid Amount</p>
             </div>
 
-            <!-- Daily Entry Form Box -->
-            <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 mb-4">
-                <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 border-b pb-2"><i class="fas fa-cash-register mr-1"></i> Today's Collection Entry</h3>
-                
-                <form id="collectionForm" class="flex flex-col gap-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Select Date</label>
-                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:border-indigo-500 bg-gray-50 text-sm font-bold text-gray-700" required>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mt-1">
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fas fa-money-bill-wave text-green-500"></i> Cash (₹)</label>
-                            <input type="number" id="cashAmount" placeholder="0" class="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:border-indigo-500 font-bold text-gray-800" oninput="calculateTotal()" required>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fas fa-mobile-alt text-blue-500"></i> Online (₹)</label>
-                            <input type="number" id="onlineAmount" placeholder="0" class="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:border-indigo-500 font-bold text-gray-800" oninput="calculateTotal()" required>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-100 p-3 rounded-lg flex justify-between items-center mt-2 border border-gray-200">
-                        <span class="text-xs font-bold text-gray-600 uppercase">Total Today:</span>
-                        <span class="text-lg font-bold text-gray-800">₹ <span id="totalAmount">0.00</span></span>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg mt-2 shadow-sm transform transition hover:scale-105 active:scale-95 flex justify-center items-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Submit Collection
-                    </button>
-                </form>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Branch Actions</h3>
             </div>
 
-            <!-- Views / History Button -->
-            <a href="branch_views.html?branch=Magrahat" class="w-full block text-center bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold py-3 rounded-lg shadow-sm transform transition hover:scale-105 active:scale-95">
-                <i class="fas fa-history mr-1"></i> View Collection History
-            </a>
-            
-            <div class="h-10"></div>
+            <!-- Action Cards Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                <a href="magrahat_bills.html" class="menu-card bg-white rounded-2xl p-4 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center gap-3 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner mb-1"><i class="fas fa-receipt"></i></div>
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-800 mb-0.5">Bills (বিল)</h2>
+                        <p class="text-[9px] text-gray-500 font-semibold leading-tight">View branch bills & products</p>
+                    </div>
+                </a>
+                <a href="magrahat_payments.html" class="menu-card bg-white rounded-2xl p-4 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center gap-3 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner mb-1"><i class="fas fa-wallet"></i></div>
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-800 mb-0.5">Payment (পেমেন্ট)</h2>
+                        <p class="text-[9px] text-gray-500 font-semibold leading-tight">Collection & dues history</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer (Fixed) -->
+        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl shrink-0">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition"><i class="fas fa-house-chimney mb-1 text-xl"></i><span class="text-[10px] font-bold">Home</span></a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition"><i class="fas fa-boxes-stacked mb-1 text-xl"></i><span class="text-[10px] font-bold">Stock</span></a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition"><i class="fas fa-user-circle mb-1 text-xl"></i><span class="text-[10px] font-bold">Profile</span></a>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
-            authDomain: "sdf-store-f39bd.firebaseapp.com",
-            projectId: "sdf-store-f39bd",
-            storageBucket: "sdf-store-f39bd.firebasestorage.app",
-            messagingSenderId: "988561141451",
-            appId: "1:988561141451:web:5778ab813d980c3f6df54e",
-            measurementId: "G-WH88QMN0Z5"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY", authDomain: "sdf-store-f39bd.firebaseapp.com", projectId: "sdf-store-f39bd", storageBucket: "sdf-store-f39bd.firebasestorage.app", messagingSenderId: "988561141451", appId: "1:988561141451:web:5778ab813d980c3f6df54e" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Branch Name Setup
-        const BRANCH_NAME = "Magrahat"; 
-
-        async function fetchMonthlyCollection() {
+        async function loadTotalDue() {
             try {
-                const currentDate = new Date();
-                const currentMonthString = currentDate.toISOString().slice(0, 7); 
-
-                const q = query(
-                    collection(db, "branch_daily_payments"), 
-                    where("branchName", "==", BRANCH_NAME)
-                );
-                
-                const querySnapshot = await getDocs(q);
-                
-                let monthTotalCash = 0;
-                let monthTotalOnline = 0;
-                let monthGrandTotal = 0;
-
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.date && data.date.startsWith(currentMonthString)) {
-                        monthTotalCash += parseFloat(data.cashAmount) || 0;
-                        monthTotalOnline += parseFloat(data.onlineAmount) || 0;
-                        monthGrandTotal += parseFloat(data.totalAmount) || 0;
+                const billsQuery = query(collection(db, "branch_bills"), where("branchName", "==", "Magrahat"));
+                const billsSnapshot = await getDocs(billsQuery);
+                let totalSellValue = 0;
+                billsSnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            let qty = parseFloat(item.qty) || 0;
+                            let sellPrice = parseFloat(item.sellPrice) || 0;
+                            totalSellValue += (qty * sellPrice);
+                        });
                     }
                 });
 
-                document.getElementById('monthCash').innerText = monthTotalCash.toFixed(2);
-                document.getElementById('monthOnline').innerText = monthTotalOnline.toFixed(2);
-                document.getElementById('monthTotal').innerText = monthGrandTotal.toFixed(2);
+                const paymentsQuery = query(collection(db, "branch_daily_payments"), where("branchName", "==", "Magrahat"));
+                const paymentsSnapshot = await getDocs(paymentsQuery);
+                let totalPaidValue = 0;
+                paymentsSnapshot.forEach((doc) => { totalPaidValue += parseFloat(doc.data().totalAmount) || 0; });
 
+                let currentDue = totalSellValue - totalPaidValue;
+                document.getElementById('totalDueValue').innerHTML = `₹${currentDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
             } catch (error) {
-                console.error("Error fetching monthly collection:", error);
+                console.error("Error loading due value:", error);
+                document.getElementById('totalDueValue').innerHTML = `<span class="text-lg text-green-200">Error</span>`;
             }
         }
-
-        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            btn.disabled = true;
-
-            const entryDate = document.getElementById('entryDate').value;
-            const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const onlineAmount = parseFloat(document.getElementById('onlineAmount').value) || 0;
-            const totalAmount = cashAmount + onlineAmount;
-
-            if (totalAmount <= 0) {
-                alert("Please enter a valid amount!");
-                resetButton(btn);
-                return;
-            }
-
-            try {
-                await addDoc(collection(db, "branch_daily_payments"), {
-                    branchName: BRANCH_NAME,
-                    date: entryDate,
-                    cashAmount: cashAmount,
-                    onlineAmount: onlineAmount,
-                    totalAmount: totalAmount,
-                    timestamp: serverTimestamp()
-                });
-
-                alert(`✅ Payment Saved for ${BRANCH_NAME}!`);
-                
-                document.getElementById('cashAmount').value = '';
-                document.getElementById('onlineAmount').value = '';
-                document.getElementById('totalAmount').innerText = '0.00';
-                
-                fetchMonthlyCollection();
-                
-            } catch (error) {
-                console.error("Error saving payment:", error);
-                alert("❌ Problem saving data. Check internet connection.");
-            }
-
-            resetButton(btn);
-        });
-
-        function resetButton(btn) {
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Collection';
-            btn.disabled = false;
-        }
-
-        window.onload = () => {
-            document.getElementById('entryDate').valueAsDate = new Date();
-            fetchMonthlyCollection();
-        };
-    </script>
-
-    <script>
-        function calculateTotal() {
-            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
-            const online = parseFloat(document.getElementById('onlineAmount').value) || 0;
-            const total = cash + online;
-            document.getElementById('totalAmount').innerText = total.toFixed(2);
-        }
+        window.onload = loadTotalDue;
     </script>
 </body>
 </html>
