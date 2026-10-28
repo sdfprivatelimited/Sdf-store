@@ -8,64 +8,150 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
-        .app-container { max-width: 480px; margin: 0 auto; background-color: #fafafa; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            height: 100dvh; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            overflow: hidden;
+        }
+        .content-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding-bottom: 20px; 
+        }
         .menu-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; }
         .menu-card:active { transform: scale(0.95); }
-        .content-area { padding-bottom: 90px; flex: 1; display: flex; flex-direction: column; justify-content: center;}
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
-        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md sticky top-0 z-30 rounded-b-lg">
+        
+        <!-- Header (Fixed) -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md z-30 rounded-b-lg shrink-0">
             <div class="flex items-center gap-3">
                 <a href="index.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
-                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">Sangrampur <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Branch</span></h1>
+                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">
+                    Sangrampur 
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Branch</span>
+                </h1>
             </div>
+            <button class="text-indigo-100 hover:text-white transition relative text-lg">
+                <i class="fas fa-store"></i>
+            </button>
         </div>
 
-        <!-- Cards Area -->
-        <div class="p-5 content-area gap-5">
-            <div class="text-center mb-2">
-                <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight">Branch Management</h2>
-                <p class="text-xs font-semibold text-gray-500 mt-1">Select an option to view data</p>
+        <!-- Scrollable Content Area -->
+        <div class="p-4 content-area">
+            
+            <!-- Dashboard Summary Card (New) -->
+            <div class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
+                <!-- Background Decoration -->
+                <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
+                <i class="fas fa-truck-loading absolute top-1/2 transform -translate-y-1/2 right-4 text-5xl text-white/20"></i>
+                
+                <h3 class="text-[10px] font-bold uppercase text-purple-100 mb-1 tracking-wider">মোট পাঠানো মাল (Transferred)</h3>
+                <h2 class="text-3xl font-black tracking-tight flex items-center gap-2" id="totalTransferValue">
+                    <i class="fas fa-circle-notch fa-spin text-lg"></i>
+                </h2>
+                <p class="text-[9px] font-semibold text-purple-200 mt-2 bg-white/20 inline-block px-2 py-0.5 rounded">Based on Total Buy Value</p>
             </div>
 
-            <!-- Bill Card (Links to Bills View Page) -->
-            <a href="sangrampur_bills.html" class="menu-card block bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
-                <i class="fas fa-file-invoice absolute -right-2 -bottom-2 text-7xl text-white/10 transform -rotate-12"></i>
-                <div class="relative z-10">
-                    <div class="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 backdrop-blur-sm border border-white/20">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
+                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Branch Actions</h3>
+            </div>
+
+            <!-- Action Cards Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                
+                <!-- Bill Card -->
+                <a href="sangrampur_bills.html" class="menu-card bg-white rounded-2xl p-4 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center gap-3 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shadow-inner mb-1">
                         <i class="fas fa-receipt"></i>
                     </div>
-                    <h2 class="text-2xl font-bold tracking-wide mb-1">Bill (বিল)</h2>
-                    <p class="text-xs text-indigo-100 font-medium">View transferred products and branch bills.</p>
-                </div>
-            </a>
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-800 mb-0.5">Bills (বিল)</h2>
+                        <p class="text-[9px] text-gray-500 font-semibold leading-tight">View branch bills & products</p>
+                    </div>
+                </a>
 
-            <!-- Payment Card (Links to your previous Payment Page) -->
-            <a href="payments.html" class="menu-card block bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mt-2">
-                <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
-                <i class="fas fa-hand-holding-dollar absolute -right-2 -bottom-2 text-7xl text-white/10 transform -rotate-12"></i>
-                <div class="relative z-10">
-                    <div class="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 backdrop-blur-sm border border-white/20">
+                <!-- Payment Card -->
+                <a href="payments.html" class="menu-card bg-white rounded-2xl p-4 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center gap-3 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner mb-1">
                         <i class="fas fa-wallet"></i>
                     </div>
-                    <h2 class="text-2xl font-bold tracking-wide mb-1">Payment (পেমেন্ট)</h2>
-                    <p class="text-xs text-emerald-100 font-medium">Collection entry and payment history.</p>
-                </div>
-            </a>
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-800 mb-0.5">Payment (পেমেন্ট)</h2>
+                        <p class="text-[9px] text-gray-500 font-semibold leading-tight">Collection & dues history</p>
+                    </div>
+                </a>
+
+            </div>
         </div>
 
-        <!-- Footer -->
-        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
+        <!-- Footer (Fixed) -->
+        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl shrink-0">
             <div class="flex justify-between items-center px-10 py-3">
-                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition"><i class="fas fa-house-chimney mb-1 text-xl"></i><span class="text-[10px] font-bold">Home</span></a>
-                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition"><i class="fas fa-boxes-stacked mb-1 text-xl"></i><span class="text-[10px] font-bold">Stock</span></a>
-                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition"><i class="fas fa-user-circle mb-1 text-xl"></i><span class="text-[10px] font-bold">Profile</span></a>
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Home</span>
+                </a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Stock</span>
+                </a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Profile</span>
+                </a>
             </div>
         </div>
     </div>
+
+    <!-- Firebase Script for Total Calculation -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadTotalTransferred() {
+            try {
+                // Fetch bills specifically for Sangrampur branch
+                const q = query(collection(db, "branch_bills"), where("branchName", "==", "Sangrampur"));
+                const querySnapshot = await getDocs(q);
+                
+                let totalBuyValue = 0;
+
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    totalBuyValue += (parseFloat(data.grandTotalBuy) || 0);
+                });
+
+                document.getElementById('totalTransferValue').innerHTML = `₹${totalBuyValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            } catch (error) {
+                console.error("Error loading transfer value:", error);
+                document.getElementById('totalTransferValue').innerHTML = `<span class="text-lg text-red-200">Error loading data</span>`;
+            }
+        }
+
+        window.onload = loadTotalTransferred;
+    </script>
 </body>
 </html>
