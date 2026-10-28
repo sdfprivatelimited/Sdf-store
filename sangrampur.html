@@ -49,17 +49,17 @@
         <!-- Scrollable Content Area -->
         <div class="p-4 content-area">
             
-            <!-- Dashboard Summary Card (New) -->
-            <div class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
+            <!-- Dashboard Summary Card (Updated to Sell Value) -->
+            <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
                 <!-- Background Decoration -->
                 <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
                 <i class="fas fa-truck-loading absolute top-1/2 transform -translate-y-1/2 right-4 text-5xl text-white/20"></i>
                 
-                <h3 class="text-[10px] font-bold uppercase text-purple-100 mb-1 tracking-wider">মোট পাঠানো মাল (Transferred)</h3>
+                <h3 class="text-[10px] font-bold uppercase text-green-100 mb-1 tracking-wider">মোট পাঠানো মাল (Transferred)</h3>
                 <h2 class="text-3xl font-black tracking-tight flex items-center gap-2" id="totalTransferValue">
                     <i class="fas fa-circle-notch fa-spin text-lg"></i>
                 </h2>
-                <p class="text-[9px] font-semibold text-purple-200 mt-2 bg-white/20 inline-block px-2 py-0.5 rounded">Based on Total Buy Value</p>
+                <p class="text-[9px] font-semibold text-green-100 mt-2 bg-black/10 inline-block px-2 py-0.5 rounded">Based on Total Sell Value</p>
             </div>
 
             <div class="flex items-center gap-2 mb-3">
@@ -137,14 +137,23 @@
                 const q = query(collection(db, "branch_bills"), where("branchName", "==", "Sangrampur"));
                 const querySnapshot = await getDocs(q);
                 
-                let totalBuyValue = 0;
+                let totalSellValue = 0;
 
+                // Loop through all bills
                 querySnapshot.forEach((doc) => {
                     let data = doc.data();
-                    totalBuyValue += (parseFloat(data.grandTotalBuy) || 0);
+                    
+                    // Loop through all items in the bill to calculate exact sell value
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            let qty = parseFloat(item.qty) || 0;
+                            let sellPrice = parseFloat(item.sellPrice) || 0;
+                            totalSellValue += (qty * sellPrice);
+                        });
+                    }
                 });
 
-                document.getElementById('totalTransferValue').innerHTML = `₹${totalBuyValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                document.getElementById('totalTransferValue').innerHTML = `₹${totalSellValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
             } catch (error) {
                 console.error("Error loading transfer value:", error);
                 document.getElementById('totalTransferValue').innerHTML = `<span class="text-lg text-red-200">Error loading data</span>`;
