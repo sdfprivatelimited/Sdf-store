@@ -17,7 +17,8 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.05); 
         }
         ::-webkit-scrollbar { display: none; }
-        .content-area { padding-bottom: 90px; } 
+        /* Increased padding-bottom to 140px so the last card clears the footer completely */
+        .content-area { padding-bottom: 140px; } 
         /* Popup Animation */
         @keyframes popIn {
             0% { transform: scale(0.9); opacity: 0; }
@@ -166,9 +167,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        let allProducts = []; // Store products globally for editing and searching
+        let allProducts = []; 
 
-        // Fetch and display products
         window.loadProducts = async function() {
             const container = document.getElementById('productsContainer');
             
@@ -184,12 +184,10 @@
                     allProducts.push(data);
                     count++;
 
-                    // Determine if stock is low or out
                     let stockBadgeClass = "bg-indigo-100 text-indigo-700";
                     if (data.quantity <= 0) stockBadgeClass = "bg-red-100 text-red-700 border border-red-200";
                     else if (data.quantity <= 5) stockBadgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
 
-                    // Calculate Total Sell Value (Qty x Sell Price)
                     let qty = parseFloat(data.quantity) || 0;
                     let sellPrice = parseFloat(data.sellPricePerUnit) || 0;
                     let totalSellValue = (qty * sellPrice).toFixed(2);
@@ -266,9 +264,6 @@
             }
         };
 
-        // --- POPUP EDIT LOGIC ---
-
-        // Open popup and fill data
         window.openEditPopup = function(docId) {
             const product = allProducts.find(p => p.id === docId);
             if (!product) return;
@@ -285,12 +280,10 @@
             document.getElementById('editPopup').classList.remove('hidden');
         };
 
-        // Close popup
         window.closeEditPopup = function() {
             document.getElementById('editPopup').classList.add('hidden');
         };
 
-        // Update placeholder in popup based on unit
         window.updateEditQuantityPlaceholder = function() {
             const unit = document.getElementById('editUnitType').value;
             const qtyInput = document.getElementById('editQuantity');
@@ -300,7 +293,6 @@
             qtyInput.placeholder = `Enter ${unit}`;
         };
 
-        // Save Edited data to Firebase
         window.saveEditedProduct = async function() {
             const docId = document.getElementById('editDocId').value;
             const name = document.getElementById('editProductName').value.trim();
@@ -335,7 +327,7 @@
 
                 alert("✅ Product updated successfully!");
                 closeEditPopup();
-                window.loadProducts(); // Refresh list
+                window.loadProducts(); 
 
             } catch (error) {
                 console.error("Error updating product: ", error);
@@ -346,15 +338,13 @@
             btn.disabled = false;
         };
 
-        // --- DELETE LOGIC ---
         window.deleteProduct = async function(docId) {
-            // event.stopPropagation() was not working properly, using normal confirm inside
             const confirmDelete = window.confirm("Are you sure you want to delete this product? This action cannot be undone.");
             if (confirmDelete) {
                 try {
                     await deleteDoc(doc(db, "inventory_purchases", docId));
                     alert("✅ Product deleted successfully!");
-                    window.loadProducts(); // Reload the UI automatically
+                    window.loadProducts(); 
                 } catch (error) {
                     console.error("Error deleting product: ", error);
                     alert("❌ Failed to delete product.");
@@ -362,7 +352,6 @@
             }
         };
 
-        // Search Filter Logic
         window.filterProducts = function() {
             const input = document.getElementById("searchInput").value.toLowerCase();
             const cards = document.getElementsByClassName("product-card");
