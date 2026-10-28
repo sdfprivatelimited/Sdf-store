@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baruipur Bills - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            height: 100dvh; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            overflow: hidden;
+        }
+        .content-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding-bottom: 20px; 
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header (Fixed) -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md z-30 rounded-b-lg shrink-0">
+            <div class="flex items-center gap-3">
+                <a href="baruipur_menu.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">
+                    Baruipur 
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Bills</span>
+                </h1>
+            </div>
+            <div class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold" id="billCountBadge">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="p-4 content-area">
+            
+            <!-- Filters -->
+            <div class="bg-white p-4 rounded-2xl shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-[9px] font-bold text-gray-500 uppercase mb-1 block">From Date</label>
+                        <input type="date" id="startDate" class="w-full border border-gray-200 p-2 rounded-lg text-xs bg-gray-50 outline-none focus:border-indigo-500 font-bold text-gray-700" onchange="filterBills()">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-gray-500 uppercase mb-1 block">To Date</label>
+                        <input type="date" id="endDate" class="w-full border border-gray-200 p-2 rounded-lg text-xs bg-gray-50 outline-none focus:border-indigo-500 font-bold text-gray-700" onchange="filterBills()">
+                    </div>
+                </div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchBill" placeholder="Search by Bill No..." class="w-full bg-gray-50 border border-gray-200 p-2.5 pl-9 rounded-xl focus:outline-none focus:border-indigo-500 text-sm font-semibold transition" onkeyup="filterBills()">
+                </div>
+            </div>
+
+            <!-- Bills List -->
+            <div id="billsList" class="flex flex-col gap-3">
+                <div class="text-center py-10 text-gray-400">
+                    <i class="fas fa-circle-notch fa-spin text-3xl mb-3 text-indigo-500"></i>
+                    <p class="text-sm font-semibold text-gray-500">Loading Bills...</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer (Fixed) -->
+        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl shrink-0">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Home</span>
+                </a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Stock</span>
+                </a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Profile</span>
+                </a>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY", 
+            authDomain: "sdf-store-f39bd.firebaseapp.com", 
+            projectId: "sdf-store-f39bd", 
+            storageBucket: "sdf-store-f39bd.firebasestorage.app", 
+            messagingSenderId: "988561141451", 
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allBills = [];
+        const BRANCH_NAME = "Baruipur"; // Database Query Filtering by Branch
+
+        window.loadBills = async function() {
+            const listContainer = document.getElementById('billsList');
+            const badge = document.getElementById('billCountBadge');
+            
+            try {
+                // Fetch bills specifically for Baruipur branch
+                const q = query(collection(db, "branch_bills"), where("branchName", "==", BRANCH_NAME));
+                const querySnapshot = await getDocs(q);
+                
+                allBills = [];
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    data.id = doc.id;
+                    
+                    // Calculate Total Sell Value for UI display (Optional enhancement)
+                    let totalSellValue = 0;
+                    if(data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            let qty = parseFloat(item.qty) || 0;
+                            let sellPrice = parseFloat(item.sellPrice) || 0;
+                            totalSellValue += (qty * sellPrice);
+                        });
+                    }
+                    data.grandTotalSell = totalSellValue;
+
+                    allBills.push(data);
+                });
+
+                // Sort by date (Newest First)
+                allBills.sort((a, b) => {
+                    let dateA = a.date ? new Date(a.date) : new Date(0);
+                    let dateB = b.date ? new Date(b.date) : new Date(0);
+                    return dateB - dateA;
+                });
+                
+                window.renderBillsList(allBills);
+                
+            } catch (error) {
+                listContainer.innerHTML = `<div class="text-center py-10 px-4"><p class="text-red-500 font-bold">${error.message}</p></div>`;
+                badge.innerText = `Error`;
+            }
+        };
+
+        window.renderBillsList = function(billsArray) {
+            const listContainer = document.getElementById('billsList');
+            document.getElementById('billCountBadge').innerText = `${billsArray.length} Bills`;
+
+            if (billsArray.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-10"><h3 class="text-sm font-bold text-gray-500">No Bills Found</h3></div>`;
+                return;
+            }
+
+            let html = "";
+            billsArray.forEach((bill) => {
+                let itemsCount = bill.items ? bill.items.length : 0;
+                let displayDate = bill.date ? new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+                
+                // Show Sell Total (or fallback to Buy Total)
+                let displayTotal = bill.grandTotalSell > 0 ? bill.grandTotalSell : (parseFloat(bill.grandTotalBuy) || 0);
+
+                html += `
+                <div onclick="window.location.href='bill_details.html?id=${bill.id}'" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:border-indigo-300 transform transition hover:scale-[1.01] active:scale-95">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-indigo-900 text-sm">Bill No: ${bill.billNo || 'N/A'}</h3>
+                            <p class="text-[10px] text-gray-500 font-semibold mt-0.5"><i class="far fa-calendar-alt"></i> ${displayDate}</p>
+                        </div>
+                        <span class="bg-green-50 text-green-600 text-[10px] font-extrabold px-2 py-1 rounded border border-green-100">Total: ₹${displayTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-gray-50 pt-2 mt-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">${itemsCount} Products Included</span>
+                        <span class="text-[10px] font-bold text-indigo-500 flex items-center gap-1">Open Full Bill <i class="fas fa-chevron-right"></i></span>
+                    </div>
+                </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        };
+
+        window.filterBills = function() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const search = document.getElementById('searchBill').value.toLowerCase();
+
+            const filtered = allBills.filter(bill => {
+                let matchesSearch = (bill.billNo || '').toLowerCase().includes(search);
+                let matchesDate = true;
+                
+                if (start && end) matchesDate = (bill.date >= start && bill.date <= end);
+                else if (start) matchesDate = (bill.date >= start);
+                else if (end) matchesDate = (bill.date <= end);
+                
+                return matchesSearch && matchesDate;
+            });
+            
+            window.renderBillsList(filtered);
+        };
+
+        window.onload = function() { window.loadBills(); };
+    </script>
+</body>
+</html>
