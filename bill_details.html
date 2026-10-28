@@ -65,8 +65,8 @@
                                 <th class="text-center w-8">#</th>
                                 <th>Item Name</th>
                                 <th class="text-center">Qty</th>
-                                <th>Prices(B/S/M)</th>
-                                <th class="text-right">Total Buy</th>
+                                <th class="text-center">Sell/Unit</th>
+                                <th class="text-right">Totals (B/S)</th>
                             </tr>
                         </thead>
                         <tbody id="itemsTableBody">
@@ -78,16 +78,12 @@
                 <!-- Totals Card -->
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
                     <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
-                        <span class="text-sm font-bold text-gray-600">Total MRP Value:</span>
-                        <span class="text-sm font-bold text-gray-800">₹ <span id="t_mrp">0.00</span></span>
-                    </div>
-                    <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
                         <span class="text-sm font-bold text-green-600">Total Sell Value:</span>
                         <span class="text-sm font-bold text-green-700">₹ <span id="t_sell">0.00</span></span>
                     </div>
-                    <div class="flex justify-between items-center mt-3">
-                        <span class="text-lg font-extrabold text-indigo-900">Grand Total (Buy):</span>
-                        <span class="text-xl font-black text-indigo-700">₹ <span id="t_buy">0.00</span></span>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-lg font-extrabold text-blue-800">Grand Total (Buy):</span>
+                        <span class="text-xl font-black text-blue-700">₹ <span id="t_buy">0.00</span></span>
                     </div>
                 </div>
 
@@ -143,30 +139,28 @@
                     let itemsHtml = "";
                     
                     let calcTotalSell = 0;
-                    let calcTotalMrp = 0;
                     let calcTotalBuy = parseFloat(bill.grandTotalBuy) || 0;
 
                     if (bill.items && bill.items.length > 0) {
                         bill.items.forEach((item, index) => {
-                            let itemBuy = parseFloat(item.buyPrice) || 0;
                             let itemSell = parseFloat(item.sellPrice) || 0;
-                            let itemMrp = parseFloat(item.mrpPrice) || 0;
                             let qty = parseFloat(item.qty) || 0;
                             
-                            calcTotalSell += (itemSell * qty);
-                            calcTotalMrp += (itemMrp * qty);
+                            let itemTotalSell = (qty * itemSell);
+                            let itemTotalBuy = parseFloat(item.totalBuy) || 0;
+
+                            calcTotalSell += itemTotalSell;
 
                             itemsHtml += `
                             <tr>
                                 <td class="text-center font-semibold text-gray-500">${index + 1}</td>
                                 <td class="font-bold text-gray-800">${item.name || 'Item'}</td>
                                 <td class="text-center font-bold text-indigo-600">${qty} ${item.unit}</td>
-                                <td class="text-[10px] leading-tight font-semibold text-gray-600">
-                                    <span class="text-blue-600">B: ₹${itemBuy}</span><br>
-                                    <span class="text-green-600">S: ₹${itemSell}</span><br>
-                                    <span class="text-purple-600">M: ₹${itemMrp}</span>
+                                <td class="text-center font-bold text-green-600">₹${itemSell}</td>
+                                <td class="text-right text-[10px] font-bold">
+                                    <span class="block text-blue-600">B: ₹${itemTotalBuy.toFixed(2)}</span>
+                                    <span class="block text-green-600 mt-0.5">S: ₹${itemTotalSell.toFixed(2)}</span>
                                 </td>
-                                <td class="text-right font-bold text-gray-800">₹${(parseFloat(item.totalBuy) || 0).toFixed(2)}</td>
                             </tr>
                             `;
                         });
@@ -179,7 +173,6 @@
                     // Set Totals
                     document.getElementById('t_buy').innerText = calcTotalBuy.toLocaleString('en-IN', { minimumFractionDigits: 2 });
                     document.getElementById('t_sell').innerText = calcTotalSell.toLocaleString('en-IN', { minimumFractionDigits: 2 });
-                    document.getElementById('t_mrp').innerText = calcTotalMrp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
                     
                     // Show Content, Hide Loader
                     document.getElementById('loadingIndicator').classList.add('hidden');
