@@ -50,35 +50,48 @@
         <!-- Main Content Area (pb-24 ensures scroll space for footer) -->
         <div class="p-4 pb-24">
             
-            <!-- Dashboard Main Cards -->
-            <div class="grid grid-cols-2 gap-3 mb-5">
-                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(79,70,229,0.4)] relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
-                    <i class="fas fa-wallet absolute top-4 right-4 text-2xl text-white/20"></i>
-                    <h3 class="text-[10px] font-semibold uppercase text-indigo-100 mb-1 tracking-wider">মোট টাকার মাল</h3>
-                    <h2 class="text-xl font-bold tracking-tight" id="totalStockValue">
+            <!-- Dashboard Main Cards (Updated) -->
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                
+                <!-- Buy Value Card -->
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
+                    <i class="fas fa-wallet absolute top-3 right-3 text-xl text-white/20"></i>
+                    <h3 class="text-[9px] font-bold uppercase text-indigo-100 mb-1 tracking-wider">মোট টাকার মাল (কেনা)</h3>
+                    <h2 class="text-lg font-bold tracking-tight" id="totalBuyValue">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
 
-                <div class="bg-gradient-to-br from-teal-400 to-emerald-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(16,185,129,0.4)] relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-20 h-20 rounded-full blur-xl"></div>
-                    <i class="fas fa-boxes absolute top-4 right-4 text-2xl text-white/20"></i>
-                    <h3 class="text-[10px] font-semibold uppercase text-emerald-100 mb-1 tracking-wider">মোট প্রোডাক্ট</h3>
-                    <h2 class="text-xl font-bold tracking-tight" id="totalProductsCount">
+                <!-- Sell Value Card -->
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
+                    <i class="fas fa-hand-holding-dollar absolute top-3 right-3 text-xl text-white/20"></i>
+                    <h3 class="text-[9px] font-bold uppercase text-emerald-100 mb-1 tracking-wider">মোট টাকার মাল (বিক্রি)</h3>
+                    <h2 class="text-lg font-bold tracking-tight" id="totalSellValue">
+                        <i class="fas fa-circle-notch fa-spin text-sm"></i>
+                    </h2>
+                </div>
+
+                <!-- Total Products Card (Moved Below & Full Width) -->
+                <div class="col-span-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 bg-white/10 w-24 h-24 rounded-full blur-xl"></div>
+                    <i class="fas fa-boxes absolute top-1/2 transform -translate-y-1/2 right-6 text-4xl text-white/20"></i>
+                    <h3 class="text-[10px] font-bold uppercase text-purple-100 mb-1 tracking-wider">গোডাউনে মোট প্রোডাক্ট</h3>
+                    <h2 class="text-2xl font-black tracking-tight" id="totalProductsCount">
                         <i class="fas fa-circle-notch fa-spin text-sm"></i>
                     </h2>
                 </div>
             </div>
 
             <!-- Stock Alerts Section (Clickable) -->
-            <div class="flex items-center gap-2 mb-3">
+            <div class="flex items-center gap-2 mb-3 mt-5">
                 <div class="w-1.5 h-4 bg-red-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Stock Alerts</h3>
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <!-- Low Stock Card (Clickable Link) -->
+                <!-- Low Stock Card -->
                 <a href="low_stock.html" class="alert-card block bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(245,158,11,0.4)] relative overflow-hidden transition-transform">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-exclamation-triangle absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -88,7 +101,7 @@
                     </h2>
                 </a>
 
-                <!-- No Stock Card (Clickable Link) -->
+                <!-- No Stock Card -->
                 <a href="no_stock.html" class="alert-card block bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-4 text-white shadow-[0_4px_10px_-3px_rgba(225,29,72,0.4)] relative overflow-hidden transition-transform">
                     <div class="absolute -right-4 -bottom-4 bg-white/10 w-16 h-16 rounded-full blur-xl"></div>
                     <i class="fas fa-times-circle absolute top-4 right-4 text-2xl text-white/20"></i>
@@ -99,7 +112,7 @@
                 </a>
             </div>
 
-            <!-- Store Management Section -->
+            <!-- Store Management Section (Purchase options removed) -->
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
                 <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wide">Store Management</h3>
@@ -135,24 +148,10 @@
                     <span class="text-xs font-bold text-gray-700">Transfer Branch</span>
                 </a>
 
-                <a href="purchase_entry.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-xl shadow-inner">
-                        <i class="fas fa-cart-plus"></i>
-                    </div>
-                    <span class="text-xs font-bold text-gray-700">Purchase Entry</span>
-                </a>
-
-                <a href="purchase_views.html" class="menu-card bg-white p-4 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center justify-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl shadow-inner">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <span class="text-xs font-bold text-gray-700">Purchase Views</span>
-                </a>
-
             </div>
         </div>
 
-        <!-- Clean Footer (Home, Stock, Profile) -->
+        <!-- Clean Footer -->
         <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl">
             <div class="flex justify-between items-center px-10 py-3">
                 <a href="index.html" class="flex flex-col items-center text-indigo-600">
@@ -193,10 +192,10 @@
 
         async function loadDashboardStats() {
             try {
-                // Ensure this collection name matches where you save your products
                 const querySnapshot = await getDocs(collection(db, "inventory_purchases")); 
                 
-                let totalStockValue = 0;
+                let totalBuyValue = 0;
+                let totalSellValue = 0;
                 let totalProducts = 0;
                 let lowStockCount = 0;
                 let noStockCount = 0;
@@ -204,8 +203,10 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const qty = parseFloat(data.quantity) || 0;
+                    const sellPrice = parseFloat(data.sellPricePerUnit) || 0;
 
-                    totalStockValue += (parseFloat(data.totalPurchasePrice) || 0);
+                    totalBuyValue += (parseFloat(data.totalPurchasePrice) || 0);
+                    totalSellValue += (qty * sellPrice);
                     totalProducts++; 
 
                     if (qty <= 0) {
@@ -215,14 +216,16 @@
                     }
                 });
 
-                document.getElementById('totalStockValue').innerHTML = `₹${totalStockValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                document.getElementById('totalBuyValue').innerHTML = `₹${totalBuyValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+                document.getElementById('totalSellValue').innerHTML = `₹${totalSellValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
                 document.getElementById('totalProductsCount').innerText = totalProducts;
                 document.getElementById('lowStockCount').innerText = lowStockCount;
                 document.getElementById('noStockCount').innerText = noStockCount;
 
             } catch (error) {
                 console.error("Error loading stats:", error);
-                document.getElementById('totalStockValue').innerText = "₹ 0.00";
+                document.getElementById('totalBuyValue').innerText = "₹ 0.00";
+                document.getElementById('totalSellValue').innerText = "₹ 0.00";
                 document.getElementById('totalProductsCount').innerText = "0";
                 document.getElementById('lowStockCount').innerText = "0";
                 document.getElementById('noStockCount').innerText = "0";
