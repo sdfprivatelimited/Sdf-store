@@ -49,17 +49,17 @@
         <!-- Scrollable Content Area -->
         <div class="p-4 content-area">
             
-            <!-- Dashboard Summary Card (Updated to Total Due) -->
-            <div class="bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
+            <!-- Dashboard Summary Card (Restored Green Color) -->
+            <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden mb-6">
                 <!-- Background Decoration -->
                 <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
                 <i class="fas fa-hand-holding-dollar absolute top-1/2 transform -translate-y-1/2 right-4 text-5xl text-white/20"></i>
                 
-                <h3 class="text-[10px] font-bold uppercase text-red-100 mb-1 tracking-wider">মোট বাকি (Total Due)</h3>
+                <h3 class="text-[10px] font-bold uppercase text-green-100 mb-1 tracking-wider">মোট বাকি (Total Due)</h3>
                 <h2 class="text-4xl font-black tracking-tight flex items-center gap-2" id="totalDueValue">
                     <i class="fas fa-circle-notch fa-spin text-lg"></i>
                 </h2>
-                <p class="text-[9px] font-semibold text-red-100 mt-2 bg-black/10 inline-block px-2 py-0.5 rounded">Transferred - Paid Amount</p>
+                <p class="text-[9px] font-semibold text-green-100 mt-2 bg-black/10 inline-block px-2 py-0.5 rounded">Transferred - Paid Amount</p>
             </div>
 
             <div class="flex items-center gap-2 mb-3">
@@ -166,14 +166,9 @@
                 const dueElement = document.getElementById('totalDueValue');
                 dueElement.innerHTML = `₹${currentDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 
-                // Optional: Change color if due is zero or less
-                if(currentDue <= 0) {
-                    dueElement.classList.add("text-green-300");
-                }
-
             } catch (error) {
                 console.error("Error loading due value:", error);
-                document.getElementById('totalDueValue').innerHTML = `<span class="text-lg text-red-200">Error loading data</span>`;
+                document.getElementById('totalDueValue').innerHTML = `<span class="text-lg text-green-200">Error loading data</span>`;
             }
         }
 
