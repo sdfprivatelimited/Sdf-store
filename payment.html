@@ -43,25 +43,19 @@
         <div class="p-4 content-area mt-2">
             
             <!-- Due Dashboard (Live Calculated) -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-5 rounded-2xl border border-gray-700 mb-5 shadow-lg relative overflow-hidden">
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-3xl border border-gray-700 mb-5 shadow-lg relative overflow-hidden flex flex-col items-center justify-center text-center">
                 <div class="absolute -right-4 -top-4 opacity-10">
-                    <i class="fas fa-hand-holding-dollar text-6xl text-white"></i>
+                    <i class="fas fa-hand-holding-dollar text-7xl text-white"></i>
                 </div>
                 
-                <div class="text-center border-b border-gray-700 pb-4 mb-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Due (মোট বাকি)</p>
-                    <h2 class="text-4xl font-black text-red-400 tracking-tight">₹ <span id="totalDueValue">0.00</span></h2>
+                <div class="mb-4 w-full">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Due (মোট বাকি)</p>
+                    <h2 class="text-5xl font-black text-red-400 tracking-tight">₹ <span id="totalDueValue">0.00</span></h2>
                 </div>
                 
-                <div class="flex justify-between items-end">
-                    <div>
-                        <p class="text-[9px] text-gray-400 font-bold uppercase"><i class="fas fa-box text-blue-400"></i> Total Transferred (Sell)</p>
-                        <h3 class="text-lg font-bold text-blue-300">₹ <span id="totalSellValue">0.00</span></h3>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] text-gray-400 font-bold uppercase"><i class="fas fa-check-circle text-green-400"></i> Total Paid</p>
-                        <h3 class="text-lg font-bold text-green-400">₹ <span id="totalPaidValue">0.00</span></h3>
-                    </div>
+                <div class="bg-gray-800/80 px-6 py-2 rounded-xl border border-gray-700 w-auto inline-block">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-0.5"><i class="fas fa-check-circle text-green-400"></i> Total Paid</p>
+                    <h3 class="text-xl font-bold text-green-400">₹ <span id="totalPaidValue">0.00</span></h3>
                 </div>
             </div>
 
@@ -147,7 +141,7 @@
         // 1. Fetch Due Status Data
         async function fetchDueStatus() {
             try {
-                // Get Total Billed Amount (based on Sell Price)
+                // Get Total Billed Amount (based on Sell Price) silently
                 const billsQuery = query(collection(db, "branch_bills"), where("branchName", "==", BRANCH_NAME));
                 const billsSnapshot = await getDocs(billsQuery);
                 
@@ -176,8 +170,7 @@
                 // Calculate Due
                 let currentDue = totalSell - totalPaid;
 
-                // Update UI
-                document.getElementById('totalSellValue').innerText = totalSell.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                // Update UI (Total Sell is hidden)
                 document.getElementById('totalPaidValue').innerText = totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 });
                 document.getElementById('totalDueValue').innerText = currentDue.toLocaleString('en-IN', { minimumFractionDigits: 2 });
                 
