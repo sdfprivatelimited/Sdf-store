@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baruipur Payment - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { 
+            max-width: 480px; 
+            margin: 0 auto; 
+            background-color: #fafafa; 
+            height: 100dvh; 
+            display: flex;
+            flex-direction: column;
+            position: relative; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            overflow: hidden;
+        }
+        ::-webkit-scrollbar { display: none; }
+        .content-area { padding-bottom: 20px; flex: 1; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Header (Fixed) -->
+        <div class="bg-indigo-600 text-white py-3 px-4 flex justify-between items-center shadow-md z-30 rounded-b-lg shrink-0">
+            <div class="flex items-center gap-3">
+                <a href="baruipur_menu.html" class="text-lg focus:outline-none hover:text-indigo-200 transition"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="text-lg font-bold flex items-center gap-2 uppercase">
+                    Baruipur
+                    <span class="text-[9px] font-semibold bg-indigo-500/50 text-indigo-50 px-2 py-0.5 rounded-full tracking-wider uppercase border border-indigo-400">Payment</span>
+                </h1>
+            </div>
+            <div class="bg-white/20 px-2 py-1 rounded-lg text-xs font-bold" id="statusBadge">
+                <i class="fas fa-circle-notch fa-spin"></i>
+            </div>
+        </div>
+
+        <div class="p-4 content-area mt-2">
+            
+            <!-- Due Dashboard (Live Calculated) -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-3xl border border-gray-700 mb-5 shadow-lg relative overflow-hidden flex flex-col items-center justify-center text-center">
+                <div class="absolute -right-4 -top-4 opacity-10">
+                    <i class="fas fa-hand-holding-dollar text-7xl text-white"></i>
+                </div>
+                
+                <div class="mb-4 w-full">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Due (মোট বাকি)</p>
+                    <h2 class="text-5xl font-black text-red-400 tracking-tight">₹ <span id="totalDueValue">0.00</span></h2>
+                </div>
+                
+                <div class="bg-gray-800/80 px-6 py-2 rounded-xl border border-gray-700 w-auto inline-block">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-0.5"><i class="fas fa-check-circle text-green-400"></i> Total Paid</p>
+                    <h3 class="text-xl font-bold text-green-400">₹ <span id="totalPaidValue">0.00</span></h3>
+                </div>
+            </div>
+
+            <!-- Daily Entry Form Box -->
+            <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100 mb-4">
+                <h3 class="text-xs font-bold text-gray-600 uppercase mb-3 border-b pb-2"><i class="fas fa-cash-register mr-1 text-emerald-500"></i> Today's Collection Entry</h3>
+                
+                <form id="collectionForm" class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Select Date</label>
+                        <input type="date" id="entryDate" class="w-full border border-gray-300 p-2.5 rounded-lg focus:outline-none focus:border-emerald-500 bg-gray-50 text-sm font-bold text-gray-700" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-1">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fas fa-money-bill-wave text-green-500"></i> Cash (₹)</label>
+                            <input type="number" id="cashAmount" placeholder="0" class="w-full border border-gray-300 p-2.5 rounded-lg focus:outline-none focus:border-emerald-500 font-bold text-gray-800 text-center" oninput="calculateTotal()" required>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase"><i class="fas fa-mobile-alt text-blue-500"></i> Online (₹)</label>
+                            <input type="number" id="onlineAmount" placeholder="0" class="w-full border border-gray-300 p-2.5 rounded-lg focus:outline-none focus:border-emerald-500 font-bold text-gray-800 text-center" oninput="calculateTotal()" required>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50 p-3 rounded-lg flex justify-between items-center mt-2 border border-emerald-100">
+                        <span class="text-xs font-bold text-emerald-800 uppercase">Total Today:</span>
+                        <span class="text-lg font-black text-emerald-700">₹ <span id="totalAmount">0.00</span></span>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-lg mt-2 shadow-sm transform transition hover:scale-[1.02] active:scale-95 flex justify-center items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Save Payment
+                    </button>
+                </form>
+            </div>
+
+            <!-- Views / History Button -->
+            <a href="branch_views.html?branch=Baruipur" class="w-full block text-center bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-3 rounded-lg shadow-sm transform transition hover:scale-[1.02] active:scale-95">
+                <i class="fas fa-history mr-1"></i> View Collection History
+            </a>
+            
+            <div class="h-6"></div>
+        </div>
+
+        <!-- Fixed Footer -->
+        <div class="bg-white border-t border-gray-100 shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)] z-40 rounded-t-2xl shrink-0">
+            <div class="flex justify-between items-center px-10 py-3">
+                <a href="index.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-600 transition">
+                    <i class="fas fa-house-chimney mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Home</span>
+                </a>
+                <a href="view_products.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-boxes-stacked mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Stock</span>
+                </a>
+                <a href="profile.html" class="flex flex-col items-center text-gray-400 hover:text-indigo-500 transition">
+                    <i class="fas fa-user-circle mb-1 text-xl"></i>
+                    <span class="text-[10px] font-bold">Profile</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Branch name is set to Baruipur
+        const BRANCH_NAME = "Baruipur"; 
+
+        // 1. Fetch Due Status Data
+        async function fetchDueStatus() {
+            try {
+                // Get Total Billed Amount (based on Sell Price) silently
+                const billsQuery = query(collection(db, "branch_bills"), where("branchName", "==", BRANCH_NAME));
+                const billsSnapshot = await getDocs(billsQuery);
+                
+                let totalSell = 0;
+                billsSnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            let qty = parseFloat(item.qty) || 0;
+                            let sellPrice = parseFloat(item.sellPrice) || 0;
+                            totalSell += (qty * sellPrice);
+                        });
+                    }
+                });
+
+                // Get Total Paid Amount
+                const paymentsQuery = query(collection(db, "branch_daily_payments"), where("branchName", "==", BRANCH_NAME));
+                const paymentsSnapshot = await getDocs(paymentsQuery);
+                
+                let totalPaid = 0;
+                paymentsSnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    totalPaid += parseFloat(data.totalAmount) || 0;
+                });
+
+                // Calculate Due
+                let currentDue = totalSell - totalPaid;
+
+                // Update UI (Total Sell is hidden)
+                document.getElementById('totalPaidValue').innerText = totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                document.getElementById('totalDueValue').innerText = currentDue.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                
+                const dueElement = document.getElementById('totalDueValue');
+                if(currentDue <= 0) {
+                    dueElement.classList.replace('text-red-400', 'text-green-400');
+                    document.getElementById('totalDueValue').innerText = "0.00 (Cleared)";
+                } else {
+                    dueElement.classList.replace('text-green-400', 'text-red-400');
+                }
+
+                document.getElementById('statusBadge').innerHTML = '<i class="fas fa-check text-green-300"></i>';
+
+            } catch (error) {
+                console.error("Error fetching due status:", error);
+                document.getElementById('statusBadge').innerHTML = '<i class="fas fa-times text-red-300"></i>';
+            }
+        }
+
+        // 2. Submit Collection
+        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const entryDate = document.getElementById('entryDate').value;
+            const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const onlineAmount = parseFloat(document.getElementById('onlineAmount').value) || 0;
+            const totalAmount = cashAmount + onlineAmount;
+
+            if (totalAmount <= 0) {
+                alert("Please enter a valid amount!");
+                resetButton(btn);
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "branch_daily_payments"), {
+                    branchName: BRANCH_NAME,
+                    date: entryDate,
+                    cashAmount: cashAmount,
+                    onlineAmount: onlineAmount,
+                    totalAmount: totalAmount,
+                    timestamp: serverTimestamp()
+                });
+
+                alert(`✅ Payment of ₹${totalAmount} Saved Successfully!`);
+                
+                // Reset inputs
+                document.getElementById('cashAmount').value = '';
+                document.getElementById('onlineAmount').value = '';
+                document.getElementById('totalAmount').innerText = '0.00';
+                
+                // Recalculate Due Live
+                document.getElementById('statusBadge').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                fetchDueStatus();
+                
+            } catch (error) {
+                console.error("Error saving payment:", error);
+                alert("❌ Problem saving data. Check internet connection.");
+            }
+
+            resetButton(btn);
+        });
+
+        function resetButton(btn) {
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Save Payment';
+            btn.disabled = false;
+        }
+
+        window.onload = () => {
+            document.getElementById('entryDate').valueAsDate = new Date();
+            fetchDueStatus();
+        };
+    </script>
+
+    <script>
+        function calculateTotal() {
+            const cash = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const online = parseFloat(document.getElementById('onlineAmount').value) || 0;
+            const total = cash + online;
+            document.getElementById('totalAmount').innerText = total.toFixed(2);
+        }
+    </script>
+</body>
+</html>
