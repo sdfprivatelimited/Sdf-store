@@ -1,1 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Data - SDF STORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;}
+        .export-card { max-width: 400px; width: 100%; background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+    </style>
+</head>
+<body>
 
+    <div class="export-card border border-gray-100">
+        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+            <i class="fas fa-cloud-download-alt"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-1">Database Backup</h2>
+        <p class="text-xs text-gray-500 mb-6">Download your Firebase data as JSON files for MySQL migration.</p>
+
+        <div class="flex flex-col gap-3">
+            <!-- Products Download -->
+            <button id="btn-inventory_purchases" onclick="downloadData('inventory_purchases')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-between">
+                <span class="flex items-center gap-2"><i class="fas fa-box-open"></i> Products / Stock</span>
+                <i class="fas fa-download"></i>
+            </button>
+
+            <!-- Bills Download -->
+            <button id="btn-branch_bills" onclick="downloadData('branch_bills')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-between">
+                <span class="flex items-center gap-2"><i class="fas fa-file-invoice"></i> All Branch Bills</span>
+                <i class="fas fa-download"></i>
+            </button>
+
+            <!-- Payments Download -->
+            <button id="btn-branch_daily_payments" onclick="downloadData('branch_daily_payments')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-between">
+                <span class="flex items-center gap-2"><i class="fas fa-wallet"></i> Payment History</span>
+                <i class="fas fa-download"></i>
+            </button>
+        </div>
+        
+        <p class="text-[10px] text-gray-400 mt-6"><i class="fas fa-info-circle text-indigo-400"></i> Save these JSON files to your PC. You can easily import them into a MySQL database using PHP later.</p>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9-KJ4UGuqjqca8yBZItdp6FmESI4qGGY",
+            authDomain: "sdf-store-f39bd.firebaseapp.com",
+            projectId: "sdf-store-f39bd",
+            storageBucket: "sdf-store-f39bd.firebasestorage.app",
+            messagingSenderId: "988561141451",
+            appId: "1:988561141451:web:5778ab813d980c3f6df54e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.downloadData = async function(collectionName) {
+            const btn = document.getElementById(`btn-${collectionName}`);
+            const originalHTML = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = `<span class="flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Downloading...</span>`;
+            btn.disabled = true;
+
+            try {
+                // Fetch data from Firebase
+                const querySnapshot = await getDocs(collection(db, collectionName));
+                let dataArray = [];
+
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    data.id = doc.id; // Keep the document ID
+                    dataArray.push(data);
+                });
+
+                if (dataArray.length === 0) {
+                    alert("No data found in this collection!");
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Convert array to JSON string
+                const jsonString = JSON.stringify(dataArray, null, 2);
+
+                // Create a Blob from the JSON string
+                const blob = new Blob([jsonString], { type: "application/json" });
+                
+                // Create a temporary link to trigger download
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Set file name with current date
+                const date = new Date().toISOString().split('T')[0];
+                a.download = `${collectionName}_backup_${date}.json`;
+                
+                // Trigger download
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                alert("✅ Data Downloaded Successfully!");
+
+            } catch (error) {
+                console.error("Error downloading data:", error);
+                alert("❌ Failed to download data. Check internet connection.");
+            }
+
+            // Restore button state
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        };
+    </script>
+</body>
+</html>
