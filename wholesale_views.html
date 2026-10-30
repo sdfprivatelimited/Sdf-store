@@ -34,15 +34,25 @@
 
         <div class="bg-white p-4 shadow-sm z-20 border-b border-gray-200">
             <input type="text" id="searchInput" placeholder="Search by Customer or Bill No..." class="w-full border border-gray-300 py-2 px-3 rounded-xl focus:outline-none focus:border-indigo-500 text-sm bg-gray-50 mb-3">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-gray-500 uppercase">Date:</span>
-                <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl text-sm focus:outline-none bg-gray-50">
+            
+            <div class="flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2 w-full">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Date:</span>
+                    <input type="date" id="dateFilter" class="w-full border border-gray-300 p-2 rounded-xl text-sm focus:outline-none bg-gray-50">
+                </div>
+                
+                <!-- Export to JSON Button -->
+                <button onclick="exportToJSON()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-amber-600 transition shadow-sm whitespace-nowrap">
+                    <i class="fas fa-download"></i> JSON
+                </button>
             </div>
         </div>
 
         <!-- Bill List -->
         <div class="scrollable-content" id="billsContainer">
-            <div id="loadingIndicator" class="text-center mt-10 text-indigo-500 font-bold"><i class="fas fa-spinner fa-spin text-3xl mb-2"></i><p>Loading...</p></div>
+            <div id="loadingIndicator" class="text-center mt-10 text-indigo-500 font-bold">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i><p>Loading Data from Firebase...</p>
+            </div>
             <div id="billsList" class="flex flex-col gap-3"></div>
             <div id="emptyState" class="hidden text-center mt-10 text-gray-400 font-bold"><p>No bills found</p></div>
         </div>
@@ -62,42 +72,66 @@
             measurementId: "G-WH88QMN0Z5"
         };
 
-        const db = getFirestore(initializeApp(firebaseConfig));
-        let allBills = [];
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // সব বিল এই ভেরিয়েবলে স্টোর হবে, যাতে এক্সপোর্ট করা যায়
+        window.allBills = [];
 
         async function fetchBills() {
             try {
                 const q = query(collection(db, "wholesale_bills"), orderBy("timestamp", "desc"));
                 const querySnapshot = await getDocs(q);
-                querySnapshot.forEach((doc) => allBills.push({ id: doc.id, ...doc.data() }));
+                
+                window.allBills = [];
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    // Timestamp অবজেক্টকে নরমাল স্ট্রিং বা Date এ কনভার্ট করে নিচ্ছি JSON এর জন্য
+                    if(data.timestamp) {
+                        data.timestamp = data.timestamp.toDate().toISOString();
+                    }
+                    window.allBills.push({ id: doc.id, ...data });
+                });
+
                 document.getElementById('loadingIndicator').classList.add('hidden');
-                renderBills(allBills);
+                renderBills(window.allBills);
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error fetching bills:", error);
+                document.getElementById('loadingIndicator').innerHTML = `<p class="text-red-500">❌ Error loading data.</p>`;
             }
         }
 
         function renderBills(bills) {
             const listContainer = document.getElementById('billsList');
             listContainer.innerHTML = '';
-            if(bills.length === 0) document.getElementById('emptyState').classList.remove('hidden');
-            else document.getElementById('emptyState').classList.add('hidden');
+            
+            if(bills.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+            }
 
             bills.forEach(bill => {
-                let displayDate = new Date(bill.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                let displayDate = 'N/A';
+                if(bill.date) {
+                    let d = new Date(bill.date);
+                    displayDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                }
+
                 let badgeClass = bill.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                let grandTotal = (parseFloat(bill.grandTotal) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
                 const card = document.createElement('a');
                 card.href = `wholesale_bill_detail.html?id=${bill.id}`;
-                card.className = "block bg-white p-4 rounded-xl shadow-sm border border-gray-200";
+                card.className = "block bg-white p-4 rounded-xl shadow-sm border border-gray-200 transform transition hover:scale-[1.02] active:scale-95";
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <h3 class="text-sm font-bold text-indigo-900">${bill.customerName}</h3>
-                            <p class="text-[11px] text-gray-500 font-bold"><i class="far fa-calendar-alt"></i> ${displayDate}</p>
+                            <h3 class="text-sm font-bold text-indigo-900">${bill.customerName || 'Unknown Customer'}</h3>
+                            <p class="text-[11px] text-gray-500 font-bold mt-0.5"><i class="far fa-calendar-alt"></i> ${displayDate}</p>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-1 rounded border ${badgeClass}">${bill.paymentStatus}</span>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded border ${badgeClass}">${bill.paymentStatus || 'N/A'}</span>
                     </div>
                     <div class="flex justify-between items-end mt-2 pt-2 border-t border-gray-100">
                         <div>
@@ -106,7 +140,7 @@
                         </div>
                         <div class="text-right">
                             <p class="text-[10px] text-gray-400 font-bold uppercase">Total</p>
-                            <p class="text-lg font-bold text-green-600">₹${bill.grandTotal}</p>
+                            <p class="text-lg font-bold text-green-600">₹${grandTotal}</p>
                         </div>
                     </div>
                 `;
@@ -117,17 +151,41 @@
         function applyFilters() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const date = document.getElementById('dateFilter').value;
-            const filtered = allBills.filter(bill => {
+            
+            const filtered = window.allBills.filter(bill => {
                 const matchSearch = (bill.customerName || "").toLowerCase().includes(search) || (bill.billNo || "").toLowerCase().includes(search);
                 const matchDate = date ? bill.date === date : true;
                 return matchSearch && matchDate;
             });
+            
             renderBills(filtered);
         }
 
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        
         window.onload = fetchBills;
+    </script>
+
+    <!-- Normal Script for JSON Export -->
+    <script>
+        function exportToJSON() {
+            if(!window.allBills || window.allBills.length === 0) {
+                alert("No data available to export yet. Please wait for the data to load.");
+                return;
+            }
+            
+            // ডাটা JSON স্ট্রিং এ কনভার্ট করা
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.allBills, null, 2));
+            
+            // ডাউনলোড ট্রিগার করা
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "wholesale_bills_firebase_backup.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
     </script>
 </body>
 </html>
